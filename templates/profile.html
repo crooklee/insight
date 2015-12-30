@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{%block nav_sidebar%}
+<li id="back"><a href="/">Dashboard</a></li>
+<li id="profile" class="active"><a href="/auth/profile">Profile</a></li>         
+{%end%}
+
+{% block content %}
+<div class="container">
+      <form class="form-signin" method="post" action="/auth/login">
+        {% module xsrf_form_html() %}
+        <h2 class="form-signin-heading">管理员登录</h2>
+        <label for="inputEmail" class="sr-only">账号</label>
+        <input type="username" maxlength="16" id="inputUsername"  name="name" class="form-control" placeholder="请输入账号" required autofocus>
+        <label for="inputPassword" class="sr-only">密码</label>
+        <input type="password" maxlength="16" id="inputPassword"  name="password" class="form-control" placeholder="请输入密码" required>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" value="remember-me"> 记住我
+          </label>
+        </div>
+        {% if error %}
+            <span style="color: red">错误: {{ error }}</span><p>
+        {% end %}
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
+    <span id="text1wrong"></span>
+    <span id="password1wrong"></span>
+      </form>
+
+    </div> <!-- /container -->
+
+
+{% end%}

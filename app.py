@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+
 # Python imports
 import os
 import concurrent.futures
@@ -34,9 +36,11 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             url(r"/", IndexHandler, name='index'),
+            url(r"/demo", DemoHandler, name='demo'),
             url(r"/auth/create", AuthCreateHandler),
             url(r"/auth/login", AuthLoginHandler),
             url(r"/auth/logout", AuthLogoutHandler),
+            url(r"/auth/profile", AuthProfileHandler),
             url(r'/ws', SocketHandler),
             url(r'/api', ApiHandler),
         ]
@@ -79,8 +83,8 @@ class IndexHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         # form = forms.HelloForm()
-        users = self.db.query(models.User).order_by(models.User.id)
-        self.render('index.html', users=users)
+        user = self.db.query(models.User).first()
+        self.render('visualization.html', user=user)
 
     def post(self):
         form = forms.HelloForm(self)
@@ -88,6 +92,13 @@ class IndexHandler(BaseHandler):
             self.write('Hello %s' % form.planet.data)
         else:
             self.render('index.html', form=form)
+
+
+class DemoHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        self.render('demo.html')
 
 
 class AuthCreateHandler(BaseHandler):
@@ -128,7 +139,7 @@ class AuthLoginHandler(BaseHandler):
         username = self.get_argument("name")
         user = self.db.query(models.User).filter_by(name=username).first()
         if not user:
-            self.render("login.html", error="user not found")
+            self.render("login.html", error="用户名不存在")
             return
         hashed_password = yield executor.submit(
             bcrypt.hashpw, tornado.escape.utf8(self.get_argument("password")),
@@ -137,15 +148,29 @@ class AuthLoginHandler(BaseHandler):
             self.set_secure_cookie("platform_user", str(user.name))
             self.redirect(self.get_argument("next", "/"))
         else:
-            self.render("login.html", error="incorrect password")
+            self.render("login.html", error="密码输入有误")
 
 
 class AuthLogoutHandler(BaseHandler):
 
+    @tornado.web.authenticated
     def get(self):
         self.clear_cookie("platform_user")
         self.redirect(self.get_argument("next", "/"))
 # Write your handlers here
+
+
+class AuthProfileHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        user = self.db.query(models.User).first()
+        self.render('profile.html', user=user, error=None)
+
+    @tornado.web.authenticated
+    @gen.coroutine
+    def post(self):
+        pass
 
 cl = []
 
