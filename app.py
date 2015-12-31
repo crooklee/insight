@@ -122,7 +122,7 @@ class AuthCreateHandler(BaseHandler):
         self.db.add(ed_user)
         self.db.commit()
         self.set_secure_cookie("platform_user", str(ed_user.name))
-        self.redirect(self.get_argument("next", "/"))
+        self.redirect("/")
 
 
 class AuthLoginHandler(BaseHandler):
@@ -146,7 +146,7 @@ class AuthLoginHandler(BaseHandler):
             tornado.escape.utf8(user.password))
         if hashed_password == user.password:
             self.set_secure_cookie("platform_user", str(user.name))
-            self.redirect(self.get_argument("next", "/"))
+            self.redirect("/")
         else:
             self.render("login.html", error="密码输入有误")
 
@@ -156,7 +156,7 @@ class AuthLogoutHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         self.clear_cookie("platform_user")
-        self.redirect(self.get_argument("next", "/"))
+        self.redirect("/")
 # Write your handlers here
 
 
@@ -164,13 +164,29 @@ class AuthProfileHandler(BaseHandler):
 
     @tornado.web.authenticated
     def get(self):
-        user = self.db.query(models.User).first()
+        user = self.get_current_user()
         self.render('profile.html', user=user, error=None)
 
     @tornado.web.authenticated
     @gen.coroutine
     def post(self):
-        pass
+        user = self.get_current_user()
+        name = self.get_argument("name")
+        password1 = self.get_argument("password1")
+        password2 = self.get_argument("password2")
+        if len(name) < 1 or len(name) > 20:
+            self.render('profile.html', user=user, error="username wrong")
+        if len(password1) < 1 or len(password1) > 20 or password1 != password2:
+            self.render('profile.html', user=user, error="password wrong")
+
+        user.name = name
+        user.fullname = name
+        hashed_password = yield executor.submit(
+            bcrypt.hashpw, tornado.escape.utf8(password1),
+            tornado.escape.utf8(user.password))
+        user.password = hashed_password
+        self.db.commit()      
+        self.write("<script>alert('管理员信息更新成功，请重新登录。');window.location ='/auth/logout'</script>")
 
 cl = []
 
@@ -210,6 +226,7 @@ def main():
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(options.port)
+    print "Engine start at", options.port
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == '__main__':

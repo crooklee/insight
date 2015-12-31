@@ -1,34 +1,38 @@
 {% extends 'layout.html' %}
 
 {%block nav_sidebar%}
-<li id="back"><a href="/">Dashboard</a></li>
-<li id="profile" class="active"><a href="/auth/profile">Profile</a></li>         
+<li id="back"><a href="/">返回控制台</a></li>
+<li id="profile" class="active"><a href="/auth/profile">管理员信息</a></li>         
 {%end%}
 
+
 {% block content %}
-<div class="container">
-      <form class="form-signin" method="post" action="/auth/login">
-        {% module xsrf_form_html() %}
-        <h2 class="form-signin-heading">管理员登录</h2>
-        <label for="inputEmail" class="sr-only">账号</label>
-        <input type="username" maxlength="16" id="inputUsername"  name="name" class="form-control" placeholder="请输入账号" required autofocus>
-        <label for="inputPassword" class="sr-only">密码</label>
-        <input type="password" maxlength="16" id="inputPassword"  name="password" class="form-control" placeholder="请输入密码" required>
-        <div class="checkbox">
-          <label>
-            <input type="checkbox" value="remember-me"> 记住我
-          </label>
-        </div>
-        {% if error %}
-            <span style="color: red">错误: {{ error }}</span><p>
-        {% end %}
-
-        <button class="btn btn-lg btn-primary btn-block" type="submit">登录</button>
-    <span id="text1wrong"></span>
-    <span id="password1wrong"></span>
-      </form>
-
-    </div> <!-- /container -->
-
-
+   <div class="col-sm-9 col-sm-offset-3 col-md-4 col-md-offset-2 main">
+    <div class="row">
+      <h2>修改管理员账号</h2><hr/>
+    </div> 
+    <div class="row">
+     <form method=post action='/auth/profile'>{% module xsrf_form_html() %}
+    <div class="form-group">
+    <label for="name">用户名:</label>
+    <input type="name" class="form-control" id="name" name="name" placeholder="{{user.name}}"  />
+  </div>
+  <div class="form-group">
+    <label for="password1">密码:</label>
+    <input type="password" class="form-control" id="password1" name="password1" placeholder="请输入密码"/>
+  </div>
+  <div class="form-group">
+    <label for="password2">密码确认:</label>
+    <input type="password" class="form-control" id="password2" name="password2" placeholder="请再一次输入密码"/>
+  </div>
+  <button type="submit" class="btn btn-primary">确定</button>
+  </form>
+  </div>   
+  </div>
+    
+  
 {% end%}
+
+
+
+
