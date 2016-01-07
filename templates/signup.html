@@ -1,0 +1,6 @@
+<form method=post action='/signup'>
+{% raw xsrf_form_html() %}
+username:<input type="text" name="username">
+password:<input type="password" name="password">
+<input type="submit" value="ok">
+</form>

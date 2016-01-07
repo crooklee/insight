@@ -1,6 +1,4 @@
-from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -22,3 +20,27 @@ class User(Base):
     def __repr__(self):
         return "<User(name='%s', fullname='%s', password='%s')>" % (
             self.name, self.fullname, self.password)
+
+
+class Location(Base):
+    __tablename__ = 'locations'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    lng = Column(String)
+    lat = Column(String)
+
+    def __repr__(self):
+        return "<Location(id='%s', lng='%s', lat='%s')>" % (
+            self.id, self.lng, self.lat)
+
+
+class Event(Base):
+    __tablename__ = 'events'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    lng = Column(String)
+    lat = Column(String)
+
+    def __repr__(self):
+        return "<Location(id='%s', lng='%s', lat='%s')>" % (
+            self.id, self.lng, self.lat)

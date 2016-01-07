@@ -5,6 +5,7 @@ import os
 import concurrent.futures
 import bcrypt
 import json
+from datetime import datetime
 # Tornado imports
 import tornado.auth
 import tornado.httpserver
@@ -24,6 +25,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 import forms
 import models
 import uimodules
+from controller import api
 executor = concurrent.futures.ThreadPoolExecutor(2)
 # Options
 define("port", default=8888, help="run on the given port", type=int)
@@ -43,6 +45,11 @@ class Application(tornado.web.Application):
             url(r"/auth/profile", AuthProfileHandler),
             url(r'/ws', SocketHandler),
             url(r'/api', ApiHandler),
+            #url(r'/api/locations', api.LocationListHandler),
+            #url(r'/apii/locations/<>', api.LocationDetailHandler),
+            #url(r'/api/jam', JamHandler),
+            #url(r'/api/count', CountHandler),
+            #url(r'/api/abandom', AbandomHandler),
         ]
         settings = dict(
             debug=options.debug,
@@ -84,7 +91,9 @@ class IndexHandler(BaseHandler):
     def get(self):
         # form = forms.HelloForm()
         user = self.db.query(models.User).first()
-        self.render('visualization.html', user=user)
+        locations = self.db.query(models.Location).all()
+        print locations[0].name
+        self.render('visualization.html', user=user, locations=locations)
 
     def post(self):
         form = forms.HelloForm(self)
@@ -185,8 +194,9 @@ class AuthProfileHandler(BaseHandler):
             bcrypt.hashpw, tornado.escape.utf8(password1),
             tornado.escape.utf8(user.password))
         user.password = hashed_password
-        self.db.commit()      
-        self.write("<script>alert('管理员信息更新成功，请重新登录。');window.location ='/auth/logout'</script>")
+        self.db.commit()
+        self.write(
+            "<script>alert('管理员信息更新成功，请重新登录。');window.location ='/auth/logout'</script>")
 
 cl = []
 
@@ -205,14 +215,82 @@ class SocketHandler(websocket.WebSocketHandler):
             cl.remove(self)
 
 
-class ApiHandler(tornado.web.RequestHandler):
+class JamHandler(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    # @tornado.web.authenticated
+    def get(self, *args):
+        self.finish()
+        location_id = self.get_argument("id")
+        lng = self.get_argument("lng")
+        lat = self.get_argument("lat")
+        factor = self.get_argument("factor")
+        data = {"lng": lng, "lat": lat, "factor": factor,
+                "id": location_id, "type": 1}
+        data = json.dumps(data)
+        for c in cl:
+            c.write_message(data)
+
+    @tornado.web.asynchronous
+    def post(self):
+        pass
+
+
+class CountHandler(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    # @tornado.web.authenticated
+    def get(self, *args):
+        self.finish()
+        location_id = self.get_argument("id")
+        lng = self.get_argument("lng")
+        lat = self.get_argument("lat")
+        count = self.get_argument("count")
+        data = {"lng": lng, "lat": lat, "count": count,
+                "id": location_id, "type": 2}
+        data = json.dumps(data)
+        for c in cl:
+            c.write_message(data)
+
+    @tornado.web.asynchronous
+    def post(self):
+        pass
+
+
+class AbandomHandler(tornado.web.RequestHandler):
 
     @tornado.web.asynchronous
     def get(self, *args):
         self.finish()
-        id = self.get_argument("id")
-        value = self.get_argument("value")
-        data = {"id": id, "value": value}
+        location_id = self.get_argument("id")
+        lng = self.get_argument("lng")
+        lat = self.get_argument("lat")
+        count = self.get_argument("count")
+        data = {"lng": lng, "lat": lat, "count": count,
+                "id": location_id, "type": 3}
+        data = json.dumps(data)
+        for c in cl:
+            c.write_message(data)
+
+    @tornado.web.asynchronous
+    def post(self):
+        pass
+
+
+class ApiHandler(tornado.web.RequestHandler):
+
+    @tornado.web.asynchronous
+    # @tornado.web.authenticated
+    def get(self, *args):
+        self.finish()
+        location_id = self.get_argument("id")
+        lng = self.get_argument("lng")
+        lat = self.get_argument("lat")
+        _type = self.get_argument("type")
+        factor = self.get_argument("factor")
+        dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        data = {"lng": lng, "lat": lat, "factor": factor,
+                "id": location_id, "type": _type, "dt": dt}
         data = json.dumps(data)
         for c in cl:
             c.write_message(data)
