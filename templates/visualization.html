@@ -10,10 +10,7 @@ $("#visualization").attr('class','active');
       <h4 class="sub-header"><strong>感知事件可视化</strong></h4>
       <div class="" role="alert"><span class="small"><img style="vertical-align:middle;" src="/static/image/resend.png">查看详细信息</span> <span class="small"><img style="vertical-align:middle;" src="/static/image/expired.png">异常事件发生</span></div>
 
-<div class="alert alert-warning alert-dismissible" id="event" role="alert">
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-  <strong>Warning!</strong> Better check yourself, you're not looking too good.
-</div>
+
 
     <div class="row">
       <div class="well" style="margin-top:5px;height:600px;">
@@ -26,8 +23,36 @@ $("#visualization").attr('class','active');
 {% block map %}
 <script type="text/javascript">
 
-   $('#event').hide()
-         
+     Date.prototype.format = function(format) {  
+    /* 
+     * eg:format="yyyy-MM-dd hh:mm:ss"; 
+     */  
+     var o = {  
+        "M+" : this.getMonth() + 1, // month  
+        "d+" : this.getDate(), // day  
+        "h+" : this.getHours(), // hour  
+        "m+" : this.getMinutes(), // minute  
+        "s+" : this.getSeconds(), // second  
+        "q+" : Math.floor((this.getMonth() + 3) / 3), // quarter  
+        "S" : this.getMilliseconds()  
+        // millisecond  
+     }  
+  
+    if (/(y+)/.test(format)) {  
+        format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4  
+                        - RegExp.$1.length));  
+    }  
+  
+    for (var k in o) {  
+        if (new RegExp("(" + k + ")").test(format)) {  
+            format = format.replace(RegExp.$1, RegExp.$1.length == 1  
+                            ? o[k]  
+                            : ("00" + o[k]).substr(("" + o[k]).length));  
+        }  
+    }  
+    return format;  
+}
+
     
 
     var map = new BMap.Map("i-map");      //设置卫星图为底图
@@ -56,8 +81,9 @@ $("#visualization").attr('class','active');
     
 
     function createEvent(_type, lng, lat, name){
-        var dy = 0.0006
-        var dx = 0.0006
+
+        
+        var dx = 20
         var icon = ''
         var eventName = ''
         if(_type==1) {
@@ -65,9 +91,9 @@ $("#visualization").attr('class','active');
             eventName = '拥堵指数'
         }
         else if(_type==2) {
-            icon='/static/image/count.png'
-            
+            icon='/static/image/count.png'            
             eventName = '拥堵指数'
+
         }else if(_type==3) {
             icon='/static/image/park.png'            
             eventName = '异常占道'
@@ -80,15 +106,13 @@ $("#visualization").attr('class','active');
             icon='/static/image/passerby.png'            
             eventName = '行人穿马路 '
         }
+        
         var point = new BMap.Point(parseFloat(lng),parseFloat(lat));
-        var myIcon = new BMap.Icon(icon, new BMap.Size(50, 40));
-        var marker = new BMap.Marker(point,{icon:myIcon});  // 创建标注 
+        var myIcon = new BMap.Icon(icon, new BMap.Size(30, 37), {anchor: new BMap.Size(0-dx*(_type-3), 10)});
+        var marker = new BMap.Marker(point,{icon:myIcon});  // 创建标注   
         map.addOverlay(marker);
-        marker.setAnimation(BMAP_ANIMATION_BOUNCE)
-        marker.addEventListener("click",getAttr);
-        function getAttr(){
-            alert(name + ': ' + eventName)  
-        }
+        marker.setAnimation(BMAP_ANIMATION_BOUNCE);
+        
         marker.hide() 
         return new _event(0, 0, _type, point, icon, marker)
     }
@@ -100,11 +124,10 @@ $("#visualization").attr('class','active');
        var ev_list = {}      
        ev_list['jam'] = createEvent(1, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        ev_list['count'] = createEvent(2, {{l.lng}}, {{l.lat}}, '{{l.name}}');
-       ev_list['abandom'] = createEvent(3, {{l.lng}}, {{l.lat}}, '{{l.name}}');
-       ev_list['passerby'] = createEvent(4, {{l.lng}}, {{l.lat}}, '{{l.name}}');
-       ev_list['accident'] = createEvent(5, {{l.lng}}, {{l.lat}}, '{{l.name}}');
+       ev_list['abandom'] = createEvent(3, {{l.lng}}, {{l.lat}}, '{{l.name}}');       
+       ev_list['accident'] = createEvent(4, {{l.lng}}, {{l.lat}}, '{{l.name}}');
+       ev_list['passerby'] = createEvent(5, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        location_list['{{l.id}}']=new _location('{{l.id}}', '{{l.name}}', {{l.lng}}, {{l.lat}}, ev_list) 
-
     {%end%}
     console.log(location_list)
 
@@ -158,20 +181,7 @@ $("#visualization").attr('class','active');
         return !!(elem.getContext && elem.getContext('2d'));
     }
 
-    function display(name, lng, lat, type){
-        var icon = ""        
-        console.log(parseFloat(lng)+0.0006)
-        var point = new BMap.Point(parseFloat(lng)+0.0006,parseFloat(lat)+0.0006);
-        if(type==3) {
-            icon='/static/image/park.png'
-        }
-        console.log(icon)
-        var myIcon = new BMap.Icon(icon, new BMap.Size(30,40));
-        var marker = new BMap.Marker(point,{icon:myIcon});  // 创建标注
-        map.addOverlay(marker);
-        map.removeOverlay(marker);
-
-    }
+  
 </script>
 
 
@@ -179,6 +189,26 @@ $("#visualization").attr('class','active');
     var ws = new WebSocket('ws://127.0.0.1:8888/ws');
     var $message = $('#message');
     
+    function creatInfoWindow(name, eventName, marker, _type, dt){
+        var dx = 20
+        var _now = new Date().getMilliseconds()
+        var sContent =
+            "<h4>位置: "+name+"</h4>" +              
+            "<p>事件: "+eventName+"</p>" + 
+            "<p>时间: "+dt+"</p>" + 
+            "<hr>" +
+            "<p>截图:</p><img  id='eventImg' src='/static/image/events/"+_type+".png?"+_now+"'"+  
+            " height='204' title='Events'/>";
+        var infoWindow = new BMap.InfoWindow(sContent, {offset: new BMap.Size(dx*(_type-3)+15, -15)}); 
+        marker.addEventListener("click", function(){          
+            this.openInfoWindow(infoWindow);
+            //图片加载完毕重绘infowindow
+            document.getElementById('eventImg').onload = function (){
+               infoWindow.redraw();   //防止在网速较慢，图片未加载时，生成的信息框高度比图片的总高度小，导致图片部分被隐藏
+            }
+        });
+    }
+
     ws.onopen = function(){
       $message.attr("class", 'label label-success');
       $message.text('open');
@@ -187,8 +217,9 @@ $("#visualization").attr('class','active');
        var json = JSON.parse(ev.data);
        console.log(json.type)
        console.log(location_list[json.id])
-
+       var name = location_list[json.id].name       
        
+       var dt = json.dt
 
        if(json.type==1){
            //jam
@@ -209,30 +240,39 @@ $("#visualization").attr('class','active');
                     
        }
        if(json.type==3){        
-           //abandom 
-           if(json.factor>0) {
-               location_list[json.id].events['abandom'].bmap_marker.show()
+           //abandom
+           var marker =  location_list[json.id].events['abandom'].bmap_marker 
+           if(json.factor>0) {               
+               var eventName = '异常占道'            
+               creatInfoWindow(name, eventName, marker, json.type, dt)
+               marker.show()
            }  else {
-               location_list[json.id].events['abandom'].bmap_marker.hide() 
+               marker.hide() 
            }
 
                         
        }
        if(json.type==4){        
-           //passerby 
-           if(json.factor>0) {
-               location_list[json.id].events['passerby'].bmap_marker.show()
+           // accident
+           var marker =  location_list[json.id].events['accident'].bmap_marker
+           if(json.factor>0) {            
+               var eventName = '交通事故'              
+               creatInfoWindow(name, eventName, marker, json.type, dt)
+               marker.show()
            }  else {
-               location_list[json.id].events['passerby'].bmap_marker.hide() 
+               marker.hide() 
            }  
                    
        }
        if(json.type==5){        
-           //accident   
-           if(json.factor>0) {
-               location_list[json.id].events['accident'].bmap_marker.show()
+           //  passerby
+           var marker =  location_list[json.id].events['passerby'].bmap_marker 
+           if(json.factor>0) {              
+               var eventName = '行人横穿马路'             
+               creatInfoWindow(name, eventName, marker, json.type, dt)
+               marker.show()
            }  else {
-               location_list[json.id].events['accident'].bmap_marker.hide() 
+               marker.hide() 
            }     
        }
     };
