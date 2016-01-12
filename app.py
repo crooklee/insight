@@ -50,7 +50,7 @@ class Application(tornado.web.Application):
             debug=options.debug,
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             template_path=os.path.join(os.path.dirname(__file__), 'templates'),
-            xsrf_cookies=True,
+            xsrf_cookies=False,
             # TODO Change this to a random string
             cookie_secret="nzjxcjasduuqwheazmu=",
             ui_modules=uimodules,
@@ -214,22 +214,38 @@ class ApiHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     # @tornado.web.authenticated
     def get(self, *args):
+        '''
         self.finish()
-        location_id = self.get_argument("id")
-        lng = self.get_argument("lng")
-        lat = self.get_argument("lat")
-        _type = self.get_argument("type")
-        factor = self.get_argument("factor")
+        location_id = self.get_argument("location_id")
+        _type = self.get_argument("event_type")
+        factor = self.get_argument("event_factor")
+        snapshot = self.get_argument("snapshot")
+        print snapshot
         dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        data = {"lng": lng, "lat": lat, "factor": factor,
-                "id": location_id, "type": _type, "dt": dt}
+        data = {"snapshot": snapshot, "factor": factor,
+                "location_id": location_id, "type": _type, "dt": dt}
         data = json.dumps(data)
         for c in cl:
             c.write_message(data)
+        '''
+        pass
 
     @tornado.web.asynchronous
     def post(self):
-        pass
+        self.finish()
+        raw_data = self.request.body
+        print raw_data
+        res = json.loads(raw_data)
+        location_id = res['location_id']
+        _type = res['event_type']
+        factor = res['event_factor']
+        snapshot = res['snapshot']
+        dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        data = {"snapshot": snapshot, "factor": factor,
+                "location_id": location_id, "type": _type, "dt": dt}
+        data = json.dumps(data)
+        for c in cl:
+            c.write_message(data)
 
 
 def main():

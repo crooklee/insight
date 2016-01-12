@@ -8,7 +8,7 @@ $("#visualization").attr('class','active');
   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <div class="row">
       <h4 class="sub-header"><strong>感知事件可视化</strong></h4>
-      <div class="" role="alert"><span class="small"><img style="vertical-align:middle;" src="/static/image/resend.png">查看详细信息</span> <span class="small"><img style="vertical-align:middle;" src="/static/image/expired.png">异常事件发生</span></div>
+      <div class="" role="alert"><span class="small"><img style="vertical-align:middle;" src='data:image/png;base64,'>查看详细信息</span> <span class="small"><img style="vertical-align:middle;" src="/static/image/expired.png">异常事件发生</span></div>
 
 
 
@@ -189,7 +189,7 @@ $("#visualization").attr('class','active');
     var ws = new WebSocket('ws://127.0.0.1:8888/ws');
     var $message = $('#message');
     
-    function creatInfoWindow(name, eventName, marker, _type, dt){
+    function creatInfoWindow(name, eventName, marker, _type, dt, snapshot){
         var dx = 20
         var _now = new Date().getMilliseconds()
         var sContent =
@@ -197,7 +197,7 @@ $("#visualization").attr('class','active');
             "<p>事件: "+eventName+"</p>" + 
             "<p>时间: "+dt+"</p>" + 
             "<hr>" +
-            "<p>截图:</p><img  id='eventImg' src='/static/image/events/"+_type+".png?"+_now+"'"+  
+            "<p>截图:</p><img  id='eventImg' src='data:image/png;base64,"+ snapshot +"'"+ 
             " height='204' title='Events'/>";
         var infoWindow = new BMap.InfoWindow(sContent, {offset: new BMap.Size(dx*(_type-3)+15, -15)}); 
         marker.addEventListener("click", function(){          
@@ -216,9 +216,11 @@ $("#visualization").attr('class','active');
     ws.onmessage = function(ev){
        var json = JSON.parse(ev.data);
        console.log(json.type)
-       console.log(location_list[json.id])
-       var name = location_list[json.id].name       
-       
+       console.log(json)
+       console.log(location_list[json.location_id])
+       var name = location_list[json.location_id].name       
+       var snapshot = json.snapshot
+       console.log(snapshot)
        var dt = json.dt
 
        if(json.type==1){
@@ -241,10 +243,10 @@ $("#visualization").attr('class','active');
        }
        if(json.type==3){        
            //abandom
-           var marker =  location_list[json.id].events['abandom'].bmap_marker 
+           var marker =  location_list[json.location_id].events['abandom'].bmap_marker 
            if(json.factor>0) {               
                var eventName = '异常占道'            
-               creatInfoWindow(name, eventName, marker, json.type, dt)
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
                marker.show()
            }  else {
                marker.hide() 
@@ -254,10 +256,10 @@ $("#visualization").attr('class','active');
        }
        if(json.type==4){        
            // accident
-           var marker =  location_list[json.id].events['accident'].bmap_marker
+           var marker =  location_list[json.location_id].events['accident'].bmap_marker
            if(json.factor>0) {            
                var eventName = '交通事故'              
-               creatInfoWindow(name, eventName, marker, json.type, dt)
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
                marker.show()
            }  else {
                marker.hide() 
@@ -266,10 +268,10 @@ $("#visualization").attr('class','active');
        }
        if(json.type==5){        
            //  passerby
-           var marker =  location_list[json.id].events['passerby'].bmap_marker 
+           var marker =  location_list[json.location_id].events['passerby'].bmap_marker 
            if(json.factor>0) {              
                var eventName = '行人横穿马路'             
-               creatInfoWindow(name, eventName, marker, json.type, dt)
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
                marker.show()
            }  else {
                marker.hide() 
