@@ -38,6 +38,14 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             url(r"/", IndexHandler, name='index'),
+            url(r"/locations", LocationHandler, name='locations'),
+            url(r"/locations/setup", LocationSetupHandler,
+                name='location_setup'),
+            url(r"/locations/add", LocationAddHandler,
+                name='location_add'),
+            url(r"/locations/remove", LocationRemoveHandler,
+                name='location_remove'),
+            url(r"/statistics", StatisticsHandler, name='statistics'),
             url(r"/demo", DemoHandler, name='demo'),
             url(r"/auth/create", AuthCreateHandler),
             url(r"/auth/login", AuthLoginHandler),
@@ -103,6 +111,70 @@ class DemoHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         self.render('demo.html')
+
+
+class StatisticsHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        user = self.get_current_user()
+        locations = self.db.query(models.Location).all()
+        self.render('statistics.html', user=user, locations=locations)
+
+    @tornado.web.authenticated
+    def post(self):
+        self.render('statistics.html')
+
+
+class LocationHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        user = self.get_current_user()
+        locations = self.db.query(models.Location).all()
+        self.render('location.html', user=user, locations=locations)
+
+
+class LocationSetupHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def post(self):
+        name = self.get_argument("name")
+        id = self.get_argument("id")
+        lng = self.get_argument("lng")
+        lat = self.get_argument("lat")
+        location = self.db.query(models.Location).filter_by(id=id).first()
+        location.name = name
+        location.lng = lng
+        location.lat = lat
+        self.db.commit()
+        print name, id, lng, lat
+        self.write('success')
+
+
+class LocationRemoveHandler(BaseHandler):
+    @tornado.web.authenticated
+    def post(self):
+        id = self.get_argument("id")
+        location = self.db.query(models.Location).filter_by(id=id).one()
+        self.db.delete(location)
+        self.write('success')
+
+
+class LocationAddHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def post(self):
+        name = self.get_argument("name")
+        lng = self.get_argument("lng")
+        lat = self.get_argument("lat")
+        location = models.Location(name=name,
+                                   lng=lng,
+                                   lat=lat)
+        self.db.add(location)
+        self.db.commit()
+        print name, lng, lat
+        self.write('success')
 
 
 class AuthCreateHandler(BaseHandler):
@@ -230,7 +302,8 @@ class ApiHandler(tornado.web.RequestHandler):
         '''
         pass
 
-    @tornado.web.asynchronous
+    #@tornado.web.asynchronous
+    @gen.coroutine
     def post(self):
         self.finish()
         raw_data = self.request.body
@@ -243,7 +316,8 @@ class ApiHandler(tornado.web.RequestHandler):
         dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         data = {"snapshot": snapshot, "factor": factor,
                 "location_id": location_id, "type": _type, "dt": dt}
-        data = json.dumps(data)
+        data = json.dumps(data)  
+        #yield      
         for c in cl:
             c.write_message(data)
 

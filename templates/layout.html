@@ -52,8 +52,9 @@
 
                 <ul class="nav nav-sidebar">
                     {%block nav_sidebar%}                    
-                    <li id="visualization"><a href="/">感知事件可视化</a></li>         
-                    <li id="statistics"><a href="/statistics">感知事件统计</a></li>                                  
+                    <li id="visualization"><a href="/">感知事件告警</a></li>         
+                    <li id="statistics"><a href="/statistics">感知事件统计</a></li>
+                    <li id="locations"><a href="/locations">事件点位设置</a></li>                                  
                     {%end%}
                 </ul>        
             </div>       
@@ -85,5 +86,6 @@
     <p>Missing content!</p>
 {% end %}
 
-
+{%block script%}
+{%end%}
 </html>

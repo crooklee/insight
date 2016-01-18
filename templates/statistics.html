@@ -1,10 +1,11 @@
-﻿{% extends 'tdrp/layout.html' %}
-{% load staticfiles %}
+﻿ {% extends 'layout.html' %}
+
 {%block active%}
 <script>
 $("#statistics").attr('class','active');
 </script>
-{%endblock%}
+{%end%}
+
 {% block content %}
     <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
         <div class="row">
@@ -35,12 +36,15 @@ $("#statistics").attr('class','active');
                         
                         </div><!-- /.col-lg-6 -->
                     </div>
-                </div>
+         
+                <div class="row">
                 <div style="padding-left:20px;padding-top:20px;">
                     <canvas  id="myChart" width="1000" height="500"></canvas>
                 </div>
-            {% endblock %}
-            {% block map%}
+                </div>
+            {% end %}
+
+            {% block script%}
                 <script>
                 var data = {
                 labels: ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"],
@@ -57,4 +61,4 @@ $("#statistics").attr('class','active');
                 var myLineChart = new Chart(ctx).Bar(data);
                 $('#datetimepicker-start').datepicker();
                 </script>
-            {% endblock %}
+            {% end %}

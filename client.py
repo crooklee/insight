@@ -2,7 +2,7 @@ import requests
 import sys
 import json
 import base64
-if len(sys.argv)<2:
+if len(sys.argv) < 2:
     exit("usage:\n  python client.py xx.png yy.png zz.png")
 name1 = sys.argv[1]
 name2 = sys.argv[2]
@@ -18,9 +18,12 @@ except:
     data1 = None
     data2 = None
     data3 = None
-payload1 = {"location_id": 1, "event_factor": 10,"event_type": 3, "snapshot":data1}
-payload2 = {"location_id": 2, "event_factor": 10,"event_type": 4, "snapshot":data2}
-payload3 = {"location_id": 3, "event_factor": 10,"event_type": 5, "snapshot":data3}
+payload1 = {"location_id": 1, "event_factor": 10,
+            "event_type": 1, "snapshot": data1}
+payload2 = {"location_id": 1, "event_factor": 10,
+            "event_type": 4, "snapshot": data2}
+payload3 = {"location_id": 1, "event_factor": 10,
+            "event_type": 5, "snapshot": data3}
 
 
 try:
@@ -31,5 +34,3 @@ try:
 
 except:
     print "Post request error!"
-
-  

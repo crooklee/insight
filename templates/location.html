@@ -1,0 +1,224 @@
+ {% extends 'layout.html' %}
+{%block active%}
+<script>
+$("#locations").attr('class','active');
+</script>
+{%end%}
+
+{% block content %}
+
+ <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+ <div class="row">
+ <h4 class="sub-header"><strong>事件点位设置</strong></h4>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>                  
+                  <th>地名</th>
+                  <th>经度</th>
+                  <th>纬度</th>
+                  <th>ID</th>
+                  <th>设置</th>
+                </tr>
+              </thead>
+              <tbody>
+
+              {% for l in locations%}
+                <tr>                  
+                  <td>{{l.name}}</td>
+                  <td>{{l.lng}}</td>
+                  <td>{{l.lat}}</td>
+                  <td>{{l.id}}</td>
+                  <td>
+                      <input class="btn btn-info btn-xs" type="button"  data-toggle="modal" data-target="#setupModal" data-id="{{l.id}}" data-name="{{l.name}}" data-lng="{{l.lng}}" data-lat="{{l.lat}}"value="设置">                      
+                      <input class="btn btn-danger btn-xs" type="button" value="删除" data-toggle="modal" data-target="#rmModal" data-id="{{l.id}}">
+                  </td>
+                </tr>
+              {%end%}
+              </tbody>
+            </table>
+             <input class="btn btn-primary" type="button" data-toggle="modal" data-target="#addModal" value="增加">                   
+              <!-- addModal -->
+              <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                      <h4 class="modal-title" id="addModalLabel">增加</h4>
+                    </div>
+                    <div class="modal-body">
+                      <form id="addForm">
+                                <div class="form-group">
+                                  <label for="name">地名</label>
+                                  <input type="text" class="form-control" id="name_added" name="name" placeholder="地名">
+                                </div>
+                                <div class="form-group">
+                                  <label for="longitude">经度</label>
+                                  <input type="text" class="form-control" id="lng_added" name="lng" placeholder="经度">
+                                </div>
+                                <div class="form-group">
+                                  <label for="latitude">纬度</label>
+                                  <input type="text" class="form-control" id="lat_added" name="lat" placeholder="纬度">
+                                </div>                                 
+                              </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                      <button type="button" id="saveAdd" class="btn btn-primary">保存</button>
+                    </div>
+                  </div>
+                </div>
+              </div><!-- addModal -->
+
+              <!-- setupModal -->
+                      <div class="modal fade" id="setupModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                              <h4 class="modal-title" id="setupModalLabel">设置</h4>
+                            </div>
+                            <div class="modal-body">
+                              <form id="setupForm">
+                                <div class="form-group">
+                                  <label for="name">地名:</label>
+                                  <input type="text" class="form-control" id="l_name" name="name">
+                                </div>
+                                <div class="form-group">
+                                  <label for="longitude">经度:</label>
+                                  <input type="text" class="form-control" id="l_longitude" name="longitude">
+                                </div>
+                                <div class="form-group">
+                                  <label for="latitude">纬度:</label>
+                                  <input type="text" class="form-control" id="l_latitude" name="latitude">
+                                </div>
+                                <input type="hidden" id="l_id" name="id">                                 
+                              </form>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                              <button type="button" id="saveSetup" class="btn btn-primary">保存</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- setupModal -->
+             <!-- rmModal -->
+                      <div class="modal fade" id="rmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                              <h4 class="modal-title" id="setupModalLabel">设置</h4>
+                            </div>
+                            <div class="modal-body">
+                              <form id="rmForm">                                
+                                <div class="form-group">
+                                  <label for="rm">确定删除当前监控点位？</label>
+                                  <input type="hidden" id="l_rm_id" name="id">   
+                                </div>                                                              
+                              </form>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                              <button type="button" id="rm" class="btn btn-primary">确定</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- rmModal -->
+          </div>
+      </div>
+      </div>
+{% end%}
+
+{%block script%}
+<script type="text/javascript">
+    $('#setupModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) 
+        console.log(button)
+        var id = button.data('id')
+        var name = button.data('name') 
+        var lng = button.data('lng')
+        var lat = button.data('lat')   
+        var modal = $(this)
+        console.log(modal)
+        modal.find('#l_id').val(id)
+        modal.find('#l_name').val(name)
+        modal.find('#l_longitude').val(lng)
+        modal.find('#l_latitude').val(lat)
+     }); 
+
+    $('#rmModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) 
+        console.log(button)
+        var id = button.data('id')
+        var modal = $(this)
+        console.log(modal)
+        modal.find('#l_rm_id').val(id)
+     });
+
+    $('#saveSetup').click(function(){
+        var id = $('#l_id').val()
+        var name = $('#l_name').val()
+        var lng = $('#l_longitude').val()
+        var lat = $('#l_latitude').val()
+        $('#saveSetup').html('保存中...')
+        $.ajax({
+            url: '/locations/setup',
+            type: 'POST',
+            data: {
+               id:id,
+               name:name,
+               lng:lng,
+               lat:lat
+            },
+            success:function(rt){
+                  if(rt="success")location.reload();
+            },
+            error:function(){
+            }
+        })
+    });
+
+    $('#rm').click(function(){
+        var id = $('#l_rm_id').val()
+        $('#rm').html('删除中...')
+        $.ajax({
+            url: '/locations/remove',
+            type: 'POST',
+            data: {
+               id:id
+            },
+            success:function(rt){
+                  if(rt="success")location.reload();
+            },
+            error:function(){
+            }
+        })
+    });
+
+    $('#saveAdd').click(function(){
+        var name = $('#name_added').val()
+        var lng = $('#lng_added').val()
+        var lat = $('#lat_added').val()
+        $('#saveAdd').html('保存中...')
+        $.ajax({
+            url: '/locations/add',
+            type: 'POST',
+            data: {
+               name:name,
+               lng:lng,
+               lat:lat
+            },
+            success:function(rt){
+                  if(rt="success")location.reload();
+            },
+            error:function(){
+            }
+        })
+    });
+
+
+</script>
+{%end%}

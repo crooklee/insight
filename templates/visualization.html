@@ -7,10 +7,15 @@ $("#visualization").attr('class','active');
 {% block content %}
   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
     <div class="row">
-      <h4 class="sub-header"><strong>感知事件可视化</strong></h4>
-      <div class="" role="alert"><span class="small"><img style="vertical-align:middle;" src='data:image/png;base64,'>查看详细信息</span> <span class="small"><img style="vertical-align:middle;" src="/static/image/expired.png">异常事件发生</span></div>
+      <h4 class="sub-header"><strong>感知事件告警</strong></h4>
+      <div class="" role="alert">
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/jam.png">:道路拥堵 </span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/park.png">:违章占道 </span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/accident.png">:交通事故 </span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/passerby.png">:行人横穿道路 </span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/abnormal.png">:可疑事件 </span></div>
 
-
+   
 
     <div class="row">
       <div class="well" style="margin-top:5px;height:600px;">
@@ -81,14 +86,12 @@ $("#visualization").attr('class','active');
     
 
     function createEvent(_type, lng, lat, name){
-
-        
-        var dx = 20
+        var dx = 10
         var icon = ''
         var eventName = ''
         if(_type==1) {
             icon='/static/image/jam.png'            
-            eventName = '拥堵指数'
+            eventName = '道路拥堵'
         }
         else if(_type==2) {
             icon='/static/image/count.png'            
@@ -130,58 +133,6 @@ $("#visualization").attr('class','active');
        location_list['{{l.id}}']=new _location('{{l.id}}', '{{l.name}}', {{l.lng}}, {{l.lat}}, ev_list) 
     {%end%}
     console.log(location_list)
-
-    if(!isSupportCanvas()){
-      alert('热力图目前只支持有canvas支持的浏览器,您所使用的浏览器不能使用热力图功能~')
-    }
-  //详细的参数,可以查看heatmap.js的文档 https://github.com/pa7/heatmap.js/blob/master/README.md
-  //参数说明如下:
-  /* visible 热力图是否显示,默认为true
-     * opacity 热力的透明度,1-100
-     * radius 势力图的每个点的半径大小   
-     * gradient  {JSON} 热力图的渐变区间 . gradient如下所示
-     *  {
-      .2:'rgb(0, 255, 255)',
-      .5:'rgb(0, 110, 255)',
-      .8:'rgb(100, 0, 255)'
-    }
-    其中 key 表示插值的位置, 0~1. 
-        value 为颜色值. 
-     */
-  heatmapOverlay = new BMapLib.HeatmapOverlay({"radius":30});
-  map.addOverlay(heatmapOverlay);
-  //heatmapOverlay.setDataSet({data:points,max:100});
-  //是否显示热力图
-  function openHeatmap(){ 
-        heatmapOverlay.setDataSet({data:points,max:100});
-        heatmapOverlay.show();
-  }
-  function closeHeatmap(){
-        heatmapOverlay.hide();
-  }
-  closeHeatmap();
-  function setGradient(){
-      /*格式如下所示:
-    {
-        0:'rgb(102, 255, 0)',
-      .5:'rgb(255, 170, 0)',
-        1:'rgb(255, 0, 0)'
-    }*/
-      var gradient = {};
-      var colors = document.querySelectorAll("input[type='color']");
-      colors = [].slice.call(colors,0);
-      colors.forEach(function(ele){
-      gradient[ele.getAttribute("data-key")] = ele.value; 
-      });
-        heatmapOverlay.setOptions({"gradient":gradient});
-    }
-  //判断浏览区是否支持canvas
-    function isSupportCanvas(){
-        var elem = document.createElement('canvas');
-        return !!(elem.getContext && elem.getContext('2d'));
-    }
-
-  
 </script>
 
 
@@ -190,14 +141,14 @@ $("#visualization").attr('class','active');
     var $message = $('#message');
     
     function creatInfoWindow(name, eventName, marker, _type, dt, snapshot){
-        var dx = 20
+        var dx = 10
         var _now = new Date().getMilliseconds()
         var sContent =
             "<h4>位置: "+name+"</h4>" +              
             "<p>事件: "+eventName+"</p>" + 
             "<p>时间: "+dt+"</p>" + 
             "<hr>" +
-            "<p>截图:</p><img  id='eventImg' src='data:image/png;base64,"+ snapshot +"'"+ 
+            "<p>事件截图:</p><img  id='eventImg' src='data:image/png;base64,"+ snapshot +"'"+ 
             " height='204' title='Events'/>";
         var infoWindow = new BMap.InfoWindow(sContent, {offset: new BMap.Size(dx*(_type-3)+15, -15)}); 
         marker.addEventListener("click", function(){          
@@ -224,17 +175,14 @@ $("#visualization").attr('class','active');
        var dt = json.dt
 
        if(json.type==1){
-           //jam
-           /*
-           closeHeatmap()
-           if($.inArray(json.id, location_jam)<0){
-               location_jam.push(json.id)
-               points.push({"lng":json.lng, "lat":json.lat, "count":json.factor})
-               console.log(json.dt)
-           }
-          openHeatmap()
-          */
-          
+          var marker =  location_list[json.location_id].events['jam'].bmap_marker 
+           if(json.factor>0) {               
+               var eventName = '道路拥堵'            
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
+               marker.show()
+           }  else {
+               marker.hide() 
+           }      
 
        }
        if(json.type==2){        
