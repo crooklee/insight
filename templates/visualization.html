@@ -83,8 +83,6 @@ $("#visualization").attr('class','active');
         this.bmap_marker = marker
     }
 
-    
-
     function createEvent(_type, lng, lat, name){
         var dx = 10
         var icon = ''
@@ -94,7 +92,7 @@ $("#visualization").attr('class','active');
             eventName = '道路拥堵'
         }
         else if(_type==2) {
-            icon='/static/image/count.png'            
+            icon='/static/image/abnormal.png'            
             eventName = '拥堵指数'
 
         }else if(_type==3) {
@@ -114,19 +112,16 @@ $("#visualization").attr('class','active');
         var myIcon = new BMap.Icon(icon, new BMap.Size(30, 37), {anchor: new BMap.Size(0-dx*(_type-3), 10)});
         var marker = new BMap.Marker(point,{icon:myIcon});  // 创建标注   
         map.addOverlay(marker);
-        marker.setAnimation(BMAP_ANIMATION_BOUNCE);
-        
+        marker.setAnimation(BMAP_ANIMATION_BOUNCE);        
         marker.hide() 
         return new _event(0, 0, _type, point, icon, marker)
-    }
-
-   
+    }  
 
     location_list = {}
     {%for l in locations%}
        var ev_list = {}      
        ev_list['jam'] = createEvent(1, {{l.lng}}, {{l.lat}}, '{{l.name}}');
-       ev_list['count'] = createEvent(2, {{l.lng}}, {{l.lat}}, '{{l.name}}');
+       ev_list['abnormal'] = createEvent(2, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        ev_list['abandom'] = createEvent(3, {{l.lng}}, {{l.lat}}, '{{l.name}}');       
        ev_list['accident'] = createEvent(4, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        ev_list['passerby'] = createEvent(5, {{l.lng}}, {{l.lat}}, '{{l.name}}');
@@ -175,8 +170,9 @@ $("#visualization").attr('class','active');
        var dt = json.dt
 
        if(json.type==1){
+          //jam
           var marker =  location_list[json.location_id].events['jam'].bmap_marker 
-           if(json.factor>0) {               
+           if(json.factor>80) {               
                var eventName = '道路拥堵'            
                creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
                marker.show()
@@ -186,7 +182,15 @@ $("#visualization").attr('class','active');
 
        }
        if(json.type==2){        
-           //count
+           //abnormal
+           var marker =  location_list[json.location_id].events['abnormal'].bmap_marker 
+           if(json.factor>0) {               
+               var eventName = '道路异常'            
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
+               marker.show()
+           }  else {
+               marker.hide() 
+           } 
                     
        }
        if(json.type==3){        

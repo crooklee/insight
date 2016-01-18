@@ -21,31 +21,33 @@ $("#statistics").attr('class','active');
                     </div><!-- /.col-lg-6 -->
                     <div class="col-lg-2">
                         <div class="dropdown">
-                            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                            选择监控点位
+                            <button class="btn btn-default dropdown-toggle" type="button" id="locationList" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <span id="locationListTop">选择监控点位</span>
                             <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                                <li><a href="#">笠泽路与交通南路交叉口</a></li>
-                                <li><a href="#">云梨路与交通南路交叉口</a></li>
-                                <li><a href="#">花园路与笠泽路交叉口</a></li>
-                                <li><a href="#">笠泽路与中山南路交叉口</a></li>
-                                <li><a href="#">...</a></li>
+                                {% for l in locations%}
+                                <li><a href="#" onclick="selectLocation('{{l.name}}');">{{l.name}}</a></li>
+                                {%end%}                                
                             </ul>
                         </div>
-                        
                         </div><!-- /.col-lg-6 -->
                     </div>
-         
+               {%for e in events%}
+               <li>{{e.id}}, {{e.location_id}}, {{e.type}}</li>
+               {%end%}
                 <div class="row">
                 <div style="padding-left:20px;padding-top:20px;">
-                    <canvas  id="myChart" width="1000" height="500"></canvas>
+                    <canvas  id="1myChart" width="1000" height="500"></canvas>
                 </div>
                 </div>
             {% end %}
 
             {% block script%}
                 <script>
+                function selectLocation(location){
+                    $('#locationListTop').html(location);   
+                }
                 var data = {
                 labels: ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"],
                 datasets: [

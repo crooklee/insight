@@ -1,0 +1,99 @@
+{% extends 'layout.html' %}
+{%block active%}
+  <script>
+  $("#events").attr('class','active');
+  
+  
+  </script>
+
+
+{%end%}
+
+{% block content %}
+  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <div class="row">
+      <h4 class="sub-header"><strong>异常事件告警</strong></h4> <span id="message" class="hide"></span>
+    </div>
+    <div class="row">
+          <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong>警告!</strong>
+            <input class="btn btn-danger btn-xs" type="button" value="处理" data-toggle="modal" data-target="#handleModal" data-id="">
+          </div>
+    </div>
+    <!-- handleModal -->
+                      <div class="modal fade" id="handleModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                        <div class="modal-dialog" role="document">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                              <h4 class="modal-title" id="setupModalLabel">异常事件处理</h4>
+                            </div>
+                            <div class="modal-body">
+                              <form id="handleForm">                                
+                                <div class="form-group">
+                                  <label>地点:</label>                                     
+                                </div>
+                                <div class="form-group">
+                                  <label>事件:</label>                                   
+                                </div>
+                                <div class="form-group">
+                                  <label>时间:</label>                                   
+                                </div>
+                                <div class="form-group">
+                                  <label>视频 / 截图:</label> 
+                                  <p><img height="300" src="/static/image/crack.jpg"></p>                                    
+                                </div>                                                                                             
+                              </form>
+                              <hr>
+                              关联委办(参考):
+                                <ul>
+                                    <li>公路处</li>
+                                    <li>运管处</li>
+                                    <li>缉查大队</li>
+                                </ul>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                <button type="button" id="handled" class="btn btn-primary">已处理</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- handleModal -->
+
+
+{% end %}
+
+{%block script%}
+<script type="text/javascript">
+
+var flag = "warning";
+   
+function show_waring(){
+    flag=(flag=='warning'?'danger':'warning')
+    $(".alert").attr("class", "alert alert-"+flag+" alert-dismissible")
+}
+
+setInterval("show_waring()",1000)
+
+
+var ws = new WebSocket('ws://127.0.0.1:8888/ws');
+var $message = $('#message');
+ws.onopen = function(){
+    $message.attr("class", 'hide label label-success');
+    $message.text('open');
+};
+ws.onmessage = function(ev){
+     
+};
+ws.onclose = function(ev){
+  $message.attr("class", 'hide label label-important');
+  $message.text('closed');
+};
+ws.onerror = function(ev){
+  $message.attr("class", 'hide label label-warning');
+  $message.text('error occurred');
+};
+</script>
+{%end%}

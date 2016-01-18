@@ -1,7 +1,7 @@
  {% extends 'layout.html' %}
 {%block active%}
 <script>
-$("#locations").attr('class','active');
+$("#departments").attr('class','active');
 </script>
 {%end%}
 
@@ -9,29 +9,33 @@ $("#locations").attr('class','active');
 
  <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
  <div class="row">
- <h4 class="sub-header"><strong>事件点位设置</strong></h4>
+ <h4 class="sub-header"><strong>职能委办配置</strong></h4>
           <div class="table-responsive">
             <table class="table table-striped table-hover">
               <thead>
                 <tr>                  
-                  <th>地名</th>
-                  <th>经度</th>
-                  <th>纬度</th>
+                  <th>名称</th>
+                  <th>联系人</th>
+                  <th>联系方式</th>
                   <th>ID</th>
                   <th>设置</th>
                 </tr>
               </thead>
               <tbody>
 
-              {% for l in locations%}
+              {% for d in departments%}
                 <tr>                  
-                  <td>{{l.name}}</td>
-                  <td>{{l.lng}}</td>
-                  <td>{{l.lat}}</td>
-                  <td>{{l.id}}</td>
+                  <td>{{d.name}}</td>
+                  <td>{{d.person}}</td>
+                  <td>                     
+                      <span><img src="/static/image/telephone.svg" style="height:16px;">: {{d.phone}}  | </span> 
+                      <span><img src="/static/image/mobile.svg" style="height:16px;">: {{d.mobile}}  | </span> 
+                      <span><img src="/static/image/mail.svg" style="height:16px;">: {{d.email}}   </span>                                                               
+                  </td>
+                  <td>{{d.id}}</td>
                   <td>
-                      <input class="btn btn-info btn-xs" type="button"  data-toggle="modal" data-target="#setupModal" data-id="{{l.id}}" data-name="{{l.name}}" data-lng="{{l.lng}}" data-lat="{{l.lat}}"value="设置">                      
-                      <input class="btn btn-danger btn-xs" type="button" value="删除" data-toggle="modal" data-target="#rmModal" data-id="{{l.id}}">
+                      <input class="btn btn-info btn-xs" type="button"  data-toggle="modal" data-target="#setupModal" data-id="{{d.id}}" data-name="{{d.name}}" data-person="{{d.person}}" data-phone="{{d.phone}}" data-mobile="{{d.mobile}}"  data-email="{{d.email}}" value="设置">                      
+                      <input class="btn btn-danger btn-xs" type="button" value="删除" data-toggle="modal" data-target="#rmModal" data-id="{{d.id}}">
                   </td>
                 </tr>
               {%end%}
@@ -49,18 +53,26 @@ $("#locations").attr('class','active');
                     <div class="modal-body">
                       <form id="addForm">
                                 <div class="form-group">
-                                  <label for="name">地名</label>
-                                  <input type="text" class="form-control" id="name_added" name="name" placeholder="地名">
+                                  <label for="name">名称:</label>
+                                  <input type="text" class="form-control" id="name_added" name="name" placeholder="名称">
                                 </div>
                                 <div class="form-group">
-                                  <label for="longitude">经度</label>
-                                  <input type="text" class="form-control" id="lng_added" name="lng" placeholder="经度">
+                                  <label for="longitude">联系人:</label>
+                                  <input type="text" class="form-control" id="person_added" name="lng" placeholder="联系人">
                                 </div>
                                 <div class="form-group">
-                                  <label for="latitude">纬度</label>
-                                  <input type="text" class="form-control" id="lat_added" name="lat" placeholder="纬度">
+                                  <label for="latitude">手机号码:</label> 
+                                  <input type="text" class="form-control" id="phone_added" name="lat" placeholder="手机号码">
+                                </div>
+                                <div class="form-group">
+                                  <label for="latitude">座机号码:</label>
+                                  <input type="text" class="form-control" id="mobile_added" name="lat" placeholder="座机号码">
+                                </div>
+                                <div class="form-group">
+                                  <label for="latitude">邮箱地址:</label>
+                                  <input type="text" class="form-control" id="email_added" name="lat" placeholder="邮箱地址">
                                 </div>                                 
-                              </form>
+                      </form>
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
@@ -81,18 +93,26 @@ $("#locations").attr('class','active');
                             <div class="modal-body">
                               <form id="setupForm">
                                 <div class="form-group">
-                                  <label for="name">地名:</label>
-                                  <input type="text" class="form-control" id="l_name" name="name">
+                                  <label for="name">名称:</label>
+                                  <input type="text" class="form-control" id="name_setup" name="name" placeholder="名称">
                                 </div>
                                 <div class="form-group">
-                                  <label for="longitude">经度:</label>
-                                  <input type="text" class="form-control" id="l_longitude" name="longitude">
+                                  <label for="longitude">联系人:</label>
+                                  <input type="text" class="form-control" id="person_setup" name="person" placeholder="联系人">
                                 </div>
                                 <div class="form-group">
-                                  <label for="latitude">纬度:</label>
-                                  <input type="text" class="form-control" id="l_latitude" name="latitude">
+                                  <label for="latitude">手机号码:</label> 
+                                  <input type="text" class="form-control" id="phone_setup" name="phone" placeholder="手机号码">
                                 </div>
-                                <input type="hidden" id="l_id" name="id">                                 
+                                <div class="form-group">
+                                  <label for="latitude">座机号码:</label>
+                                  <input type="text" class="form-control" id="mobile_setup" name="mobile" placeholder="座机号码">
+                                </div>
+                                <div class="form-group">
+                                  <label for="latitude">邮箱地址:</label>
+                                  <input type="text" class="form-control" id="email_setup" name="email" placeholder="邮箱地址">
+                                </div>
+                                 <input type="hidden" id="id_setup" name="id">                                  
                               </form>
                             </div>
                             <div class="modal-footer">
@@ -114,8 +134,8 @@ $("#locations").attr('class','active');
                             <div class="modal-body">
                               <form id="rmForm">                                
                                 <div class="form-group">
-                                  <label for="rm">确定删除当前监控点位？</label>
-                                  <input type="hidden" id="l_rm_id" name="id">   
+                                  <label for="rm">确定删除当前职能委办？</label>
+                                  <input type="hidden" id="id_rm" name="id">   
                                 </div>                                                              
                               </form>
                             </div>
@@ -138,15 +158,19 @@ $("#locations").attr('class','active');
         var button = $(event.relatedTarget) 
         console.log(button)
         var id = button.data('id')
-        var name = button.data('name') 
-        var lng = button.data('lng')
-        var lat = button.data('lat')   
+        var name = button.data('name')
+        var person = button.data('person')
+        var phone = button.data('phone')
+        var mobile = button.data('mobile')
+        var email = button.data('email')
         var modal = $(this)
         console.log(modal)
-        modal.find('#l_id').val(id)
-        modal.find('#l_name').val(name)
-        modal.find('#l_longitude').val(lng)
-        modal.find('#l_latitude').val(lat)
+        modal.find('#id_setup').val(id)
+        modal.find('#name_setup').val(name)
+        modal.find('#person_setup').val(person)
+        modal.find('#phone_setup').val(phone)
+        modal.find('#mobile_setup').val(mobile)
+        modal.find('#email_setup').val(email)
      }); 
 
     $('#rmModal').on('show.bs.modal', function (event) {
@@ -155,23 +179,27 @@ $("#locations").attr('class','active');
         var id = button.data('id')
         var modal = $(this)
         console.log(modal)
-        modal.find('#l_rm_id').val(id)
+        modal.find('#id_rm').val(id)
      });
 
     $('#saveSetup').click(function(){
-        var id = $('#l_id').val()
-        var name = $('#l_name').val()
-        var lng = $('#l_longitude').val()
-        var lat = $('#l_latitude').val()
+        var id = $('#id_setup').val()
+        var name = $('#name_setup').val()
+        var person = $('#person_setup').val()
+        var phone = $('#phone_setup').val()
+        var mobile = $('#mobile_setup').val()
+        var email = $('#email_setup').val()
         $('#saveSetup').html('保存中...')
         $.ajax({
-            url: '/locations/setup',
+            url: '/departments/setup',
             type: 'POST',
             data: {
                id:id,
                name:name,
-               lng:lng,
-               lat:lat
+               person:person,
+               phone:phone,
+               mobile:mobile,
+               email:email
             },
             success:function(rt){
                   if(rt="success")location.reload();
@@ -182,10 +210,10 @@ $("#locations").attr('class','active');
     });
 
     $('#rm').click(function(){
-        var id = $('#l_rm_id').val()
+        var id = $('#id_rm').val()
         $('#rm').html('删除中...')
         $.ajax({
-            url: '/locations/remove',
+            url: '/departments/remove',
             type: 'POST',
             data: {
                id:id
@@ -200,16 +228,21 @@ $("#locations").attr('class','active');
 
     $('#saveAdd').click(function(){
         var name = $('#name_added').val()
-        var lng = $('#lng_added').val()
-        var lat = $('#lat_added').val()
+        var person = $('#person_added').val()
+        var phone = $('#phone_added').val()
+        var mobile = $('#mobile_added').val()
+        var email = $('#email_added').val()
+        
         $('#saveAdd').html('保存中...')
         $.ajax({
-            url: '/locations/add',
+            url: '/departments/add',
             type: 'POST',
             data: {
                name:name,
-               lng:lng,
-               lat:lat
+               person:person,
+               phone:phone,
+               mobile:mobile,
+               email:email
             },
             success:function(rt){
                   if(rt="success")location.reload();
