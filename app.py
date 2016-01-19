@@ -37,6 +37,7 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             url(r"/", IndexHandler, name='index'),
+            url(r"/events", EventsHandler, name='events'),
             url(r"/visualization", VisualizationHandler, name='visualization'),
             # location configuration
             url(r"/locations", LocationHandler, name='locations'),
@@ -106,8 +107,32 @@ class IndexHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user = self.db.query(models.User).first()
-        num = self.db.query(models.Event).all()
-        self.render('index.html', user=user, num=num)
+        events = self.db.query(models.Event).filter_by(status=0).all()
+        e_dic = {1:'交通拥堵', 2:'可疑事件', 3:'违章占道', 4:'交通事故' , 5:'行人横穿马路'}
+        data = []
+        for e in events:
+            location = self.db.query(models.Location).filter_by(id=e.location_id).one()
+            data.append({'id':e.id, 'event_name':e_dic[e.id], 'location':location.name, 'dt': e.dt.strftime('%Y-%m-%d %H:%M:%S')})
+        num_event = ''
+        if events:
+            num_event = len(events)
+        self.render(
+            'index.html', user=user, num_event=num_event, events=data)
+
+
+class EventsHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        id = self.get_argument('id')
+        event = self.db.query(models.Event).filter_by(id=id).one()
+        location = self.db.query(models.Location).filter_by(id=event.location_id).one()
+        e_dic = {1:'交通拥堵', 2:'可疑事件', 3:'违章占到', 4:'交通事道' , 5:'行人横穿马路'}       
+        data  = {'status': 'success', 'location': location.name, '_event':e_dic[event.type], 'dt': event.dt.strftime('%Y-%m-%d %H:%M:%S'), 'snapshot': event.snapshot}
+        print data
+        self.write(data)
+        
+        
 
 
 class VisualizationHandler(BaseHandler):
@@ -116,7 +141,12 @@ class VisualizationHandler(BaseHandler):
         # form = forms.HelloForm()
         user = self.db.query(models.User).first()
         locations = self.db.query(models.Location).all()
-        self.render('visualization.html', user=user, locations=locations)
+        num_event = util.getNewEventNum(self)
+        self.render(
+            'visualization.html',
+            user=user,
+            locations=locations,
+            num_event=num_event)
 
 
 class StatisticsHandler(BaseHandler):
@@ -125,9 +155,14 @@ class StatisticsHandler(BaseHandler):
     def get(self):
         user = self.get_current_user()
         locations = self.db.query(models.Location).all()
+        num_event = util.getNewEventNum(self)
         events = self.db.query(models.Event).all()
         self.render(
-            'statistics.html', user=user, locations=locations, events=events)
+            'statistics.html',
+            user=user,
+            locations=locations,
+            events=events,
+            num_event=num_event)
 
     @tornado.web.authenticated
     def post(self):
@@ -228,7 +263,11 @@ class LocationHandler(BaseHandler):
     def get(self):
         user = self.get_current_user()
         locations = self.db.query(models.Location).all()
-        self.render('location.html', user=user, locations=locations)
+        num_event = util.getNewEventNum(self)
+        self.render('location.html',
+                    user=user,
+                    locations=locations,
+                    num_event=num_event)
 
 
 class LocationSetupHandler(BaseHandler):
@@ -276,9 +315,14 @@ class DepartmentHandler(BaseHandler):
 
     @tornado.web.authenticated
     def get(self):
+        num_event = None
+        num_event = util.getNewEventNum(self)
         user = self.get_current_user()
         departments = self.db.query(models.Department).all()
-        self.render('department.html', user=user, departments=departments)
+        self.render('department.html',
+                    user=user,
+                    departments=departments,
+                    num_event=num_event)
 
 
 class DepartmentSetupHandler(BaseHandler):
@@ -403,7 +447,8 @@ class ApiHandler(BaseHandler):
                              type=_type,
                              factor=factor,
                              dt=raw_dt,
-                             snapshot=snapshot_path)
+                             snapshot=snapshot_path,
+                             status=0)
         self.db.add(event)
         self.db.commit()
         events = self.db.query(models.Event).all()

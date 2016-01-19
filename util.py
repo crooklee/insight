@@ -1,5 +1,14 @@
 # Copied from django with some modifications
 import copy
+import models
+
+
+def getNewEventNum(session):
+    num_event = ''
+    events = session.db.query(models.Event).filter_by(status=0).all()
+    if events:
+        num_event = len(events)
+    return num_event
 
 
 def base64ToImage(snapshot, type):

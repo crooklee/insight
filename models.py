@@ -45,6 +45,7 @@ class Event(Base):
     factor = Column(Integer)
     snapshot = Column(String)
     dt = Column(DateTime)
+    status = Column(Integer)  # 0 init, 1 handled
 
     def __repr__(self):
         return "<Event(id='%s', type='%s', Location='%s'>" % (

@@ -14,12 +14,17 @@
     <div class="row">
       <h4 class="sub-header"><strong>异常事件告警</strong></h4> <span id="message" class="hide"></span>
     </div>
-    <div class="row">
+    <div class="row" id="event_list">
+          {%for e in events%}          
           <div class="alert alert-danger alert-dismissible" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>警告!</strong>
-            <input class="btn btn-danger btn-xs" type="button" value="处理" data-toggle="modal" data-target="#handleModal" data-id="">
+            <strong class="col-md-1">警告!</strong>
+            <span class="col-md-2">事件: <strong>[{{e['event_name']}}]</strong></span>
+            <span class="col-md-2">监控位置: <strong>[{{e['location']}}]</strong></span>
+            <span class="col-md-5">时间: <strong>[{{e['dt']}}]</strong></span>
+            <input class="btn btn-danger btn-xs" type="button" value="处理" data-toggle="modal" data-target="#handleModal" data-id={{e['id']}}>
           </div>
+          {%end%}
     </div>
     <!-- handleModal -->
                       <div class="modal fade" id="handleModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -32,25 +37,28 @@
                             <div class="modal-body">
                               <form id="handleForm">                                
                                 <div class="form-group">
-                                  <label>地点:</label>                                     
+                                  <label>地点:<span id="location"></span></label>                                     
                                 </div>
                                 <div class="form-group">
-                                  <label>事件:</label>                                   
+                                  <label>事件:<span id="event"></span></label>                                   
                                 </div>
                                 <div class="form-group">
-                                  <label>时间:</label>                                   
+                                  <label>时间:<span id="dt"></span></label>                                   
                                 </div>
                                 <div class="form-group">
                                   <label>视频 / 截图:</label> 
-                                  <p><img height="300" src="/static/image/crack.jpg"></p>                                    
+                                  <p><img height="300" src="/static/image/crack.jpg" id="snapshot"></p>                                    
                                 </div>                                                                                             
                               </form>
                               <hr>
                               关联委办(参考):
-                                <ul>
-                                    <li>公路处</li>
-                                    <li>运管处</li>
-                                    <li>缉查大队</li>
+                                <ul id="deparments">
+                                    <li>吴江区公路管理处: 
+                                    <span>吕永其(主任)</span>
+                                    <span><img src="/static/image/telephone.svg" style="height:16px;">: 13913075937| </span> 
+                                    <span><img src="/static/image/mobile.svg" style="height:16px;">:  63416275| </span> 
+                                    <span><img src="/static/image/mail.svg" style="height:16px;">: lyq@wjjtj.gov.cn    </span>    
+                                    </li>   
                                 </ul>
                             </div>
                             <div class="modal-footer">
@@ -74,6 +82,31 @@ function show_waring(){
     flag=(flag=='warning'?'danger':'warning')
     $(".alert").attr("class", "alert alert-"+flag+" alert-dismissible")
 }
+
+
+$('#handleModal').on('show.bs.modal', function (ev) {
+    var button = $(ev.relatedTarget) 
+    console.log(button)
+    var id = button.data('id') 
+    var modal = $(this)
+        $.ajax({
+            url: '/events',
+            type: 'GET',
+            data: {id:id},
+            success:function(rt){
+                  console.log(rt)
+                  if(rt.status="success"){
+                      modal.find('#location').html(rt.location)
+                      modal.find('#event').html(rt._event)
+                      modal.find('#dt').html(rt.dt)
+                      modal.find('#snapshot').attr("src", rt.snapshot)
+                      modal.find('#departments').html(rt.departments)
+                    };
+            },
+            error:function(){
+            }
+        })       
+     }); 
 
 setInterval("show_waring()",1000)
 

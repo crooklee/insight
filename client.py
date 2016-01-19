@@ -28,13 +28,13 @@ except:
     data5 = None
 payload1 = {"location_id": 1, "event_factor": 90,
             "event_type": 1, "snapshot": data1}
-payload2 = {"location_id": 2, "event_factor": 10,
+payload2 = {"location_id": 1, "event_factor": 10,
             "event_type": 2, "snapshot": data2}
-payload3 = {"location_id": 3, "event_factor": 10,
+payload3 = {"location_id": 2, "event_factor": 10,
             "event_type": 3, "snapshot": data3}
-payload4 = {"location_id": 4, "event_factor": 10,
+payload4 = {"location_id": 3, "event_factor": 10,
             "event_type": 4, "snapshot": data4}
-payload5 = {"location_id": 5, "event_factor": 10,
+payload5 = {"location_id": 4, "event_factor": 10,
             "event_type": 5, "snapshot": data5}
 
 
