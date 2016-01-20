@@ -17,6 +17,7 @@ $("#departments").attr('class','active');
                   <th>名称</th>
                   <th>联系人</th>
                   <th>联系方式</th>
+                  <th>接受告警类型</th>
                   <th>ID</th>
                   <th>设置</th>
                 </tr>
@@ -32,9 +33,11 @@ $("#departments").attr('class','active');
                       <span><img src="/static/image/mobile.svg" style="height:16px;">: {{d.mobile}}  | </span> 
                       <span><img src="/static/image/mail.svg" style="height:16px;">: {{d.email}}   </span>                                                               
                   </td>
+                  <td>{{d.type}}</td>
                   <td>{{d.id}}</td>
                   <td>
-                      <input class="btn btn-info btn-xs" type="button"  data-toggle="modal" data-target="#setupModal" data-id="{{d.id}}" data-name="{{d.name}}" data-person="{{d.person}}" data-phone="{{d.phone}}" data-mobile="{{d.mobile}}"  data-email="{{d.email}}" value="设置">                      
+                      <input class="btn btn-info btn-xs" type="button"  data-toggle="modal" data-target="#setupModal" data-id="{{d.id}}" data-name="{{d.name}}" data-person="{{d.person}}" data-phone="{{d.phone}}" data-mobile="{{d.mobile}}"  
+                      data-type="{{d.type}}"  data-email="{{d.email}}" value="设置">                      
                       <input class="btn btn-danger btn-xs" type="button" value="删除" data-toggle="modal" data-target="#rmModal" data-id="{{d.id}}">
                   </td>
                 </tr>
@@ -71,6 +74,10 @@ $("#departments").attr('class','active');
                                 <div class="form-group">
                                   <label for="latitude">邮箱地址:</label>
                                   <input type="text" class="form-control" id="email_added" name="lat" placeholder="邮箱地址">
+                                </div>
+                                <div class="form-group">
+                                  <label for="latitude">接受告警类型:</label>
+                                  <input type="text" class="form-control" id="type_added" name="lat" placeholder="接受告警类型">
                                 </div>                                 
                       </form>
                     </div>
@@ -112,6 +119,10 @@ $("#departments").attr('class','active');
                                   <label for="latitude">邮箱地址:</label>
                                   <input type="text" class="form-control" id="email_setup" name="email" placeholder="邮箱地址">
                                 </div>
+                                <div class="form-group">
+                                  <label for="latitude">接受告警类型:</label>
+                                  <input type="text" class="form-control" id="type_setup" name="lat" placeholder="接受告警类型">
+                                </div>  
                                  <input type="hidden" id="id_setup" name="id">                                  
                               </form>
                             </div>
@@ -163,6 +174,7 @@ $("#departments").attr('class','active');
         var phone = button.data('phone')
         var mobile = button.data('mobile')
         var email = button.data('email')
+        var type = button.data('type')
         var modal = $(this)
         console.log(modal)
         modal.find('#id_setup').val(id)
@@ -171,6 +183,7 @@ $("#departments").attr('class','active');
         modal.find('#phone_setup').val(phone)
         modal.find('#mobile_setup').val(mobile)
         modal.find('#email_setup').val(email)
+        modal.find('#type_setup').val(type)
      }); 
 
     $('#rmModal').on('show.bs.modal', function (event) {
@@ -189,6 +202,7 @@ $("#departments").attr('class','active');
         var phone = $('#phone_setup').val()
         var mobile = $('#mobile_setup').val()
         var email = $('#email_setup').val()
+        var type = $('#type_setup').val()
         $('#saveSetup').html('保存中...')
         $.ajax({
             url: '/departments/setup',
@@ -199,7 +213,8 @@ $("#departments").attr('class','active');
                person:person,
                phone:phone,
                mobile:mobile,
-               email:email
+               email:email,
+               type:type
             },
             success:function(rt){
                   if(rt="success")location.reload();
@@ -232,7 +247,7 @@ $("#departments").attr('class','active');
         var phone = $('#phone_added').val()
         var mobile = $('#mobile_added').val()
         var email = $('#email_added').val()
-        
+        var type = $('#type_added').val()
         $('#saveAdd').html('保存中...')
         $.ajax({
             url: '/departments/add',
@@ -242,7 +257,8 @@ $("#departments").attr('class','active');
                person:person,
                phone:phone,
                mobile:mobile,
-               email:email
+               email:email,
+               type:type
             },
             success:function(rt){
                   if(rt="success")location.reload();

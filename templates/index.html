@@ -1,9 +1,7 @@
 {% extends 'layout.html' %}
 {%block active%}
   <script>
-  $("#events").attr('class','active');
-  
-  
+  $("#events").attr('class','active'); 
   </script>
 
 
@@ -20,7 +18,7 @@
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <strong class="col-md-1">警告!</strong>
             <span class="col-md-2">事件: <strong>[{{e['event_name']}}]</strong></span>
-            <span class="col-md-2">监控位置: <strong>[{{e['location']}}]</strong></span>
+            <span class="col-md-3">监控位置: <strong>[{{e['location']}}]</strong></span>
             <span class="col-md-5">时间: <strong>[{{e['dt']}}]</strong></span>
             <input class="btn btn-danger btn-xs" type="button" value="处理" data-toggle="modal" data-target="#handleModal" data-id={{e['id']}}>
           </div>
@@ -37,6 +35,7 @@
                             <div class="modal-body">
                               <form id="handleForm">                                
                                 <div class="form-group">
+                                  <span class="hide" id="id"></span>
                                   <label>地点:<span id="location"></span></label>                                     
                                 </div>
                                 <div class="form-group">
@@ -53,11 +52,11 @@
                               <hr>
                               关联委办(参考):
                                 <ul id="deparments">
-                                    <li>吴江区公路管理处: 
-                                    <span>吕永其(主任)</span>
-                                    <span><img src="/static/image/telephone.svg" style="height:16px;">: 13913075937| </span> 
-                                    <span><img src="/static/image/mobile.svg" style="height:16px;">:  63416275| </span> 
-                                    <span><img src="/static/image/mail.svg" style="height:16px;">: lyq@wjjtj.gov.cn    </span>    
+                                    <li id="deparment">吴江区公路管理处: 
+                                    <span id="name">吕永其(主任)</span>
+                                    <span><img src="/static/image/telephone.svg" style="height:16px;">: <span id="mobile">13913075937</span>| </span> 
+                                    <span><img src="/static/image/mobile.svg" style="height:16px;">:  <span id="phone">63416275</span>| </span> 
+                                    <span><img src="/static/image/mail.svg" style="height:16px;">: <span id="email">lyq@wjjtj.gov.cn</span>    </span>    
                                     </li>   
                                 </ul>
                             </div>
@@ -89,27 +88,49 @@ $('#handleModal').on('show.bs.modal', function (ev) {
     console.log(button)
     var id = button.data('id') 
     var modal = $(this)
+    $.ajax({
+        url: '/events',
+        type: 'GET',
+        data: {id:id},
+        success:function(rt){
+              console.log(rt)
+              if(rt.status="success"){
+                  modal.find("#id").html(id)
+                  modal.find('#location').html(rt.location)
+                  modal.find('#event').html(rt._event)
+                  modal.find('#dt').html(rt.dt)
+                  modal.find('#snapshot').attr("src", rt.snapshot)
+                  modal.find('#departments').html(rt.departments)
+             };
+        },
+        error:function(){
+        }
+   })       
+}); 
+
+$('#handled').on('click', function (ev) {
+        var button = $(ev.relatedTarget) 
+        console.log(button)
+        var id = $('#id').html()        
+        var modal = $(this)
         $.ajax({
-            url: '/events',
-            type: 'GET',
-            data: {id:id},
+            url: '/events/handle',
+            type: 'POST',
+            data: {
+               id:id
+            },
             success:function(rt){
-                  console.log(rt)
-                  if(rt.status="success"){
-                      modal.find('#location').html(rt.location)
-                      modal.find('#event').html(rt._event)
-                      modal.find('#dt').html(rt.dt)
-                      modal.find('#snapshot').attr("src", rt.snapshot)
-                      modal.find('#departments').html(rt.departments)
-                    };
+                  if(rt="success"){
+                    alert('该事件将从事件列表中移除.');
+                    location.reload();
+                  }
             },
             error:function(){
             }
-        })       
-     }); 
+       })
+})
 
 setInterval("show_waring()",1000)
-
 
 var ws = new WebSocket('ws://127.0.0.1:8888/ws');
 var $message = $('#message');

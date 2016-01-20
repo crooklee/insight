@@ -38,6 +38,8 @@ class Application(tornado.web.Application):
         handlers = [
             url(r"/", IndexHandler, name='index'),
             url(r"/events", EventsHandler, name='events'),
+            #url(r"/eventsonmap", EventsOnMapHandler, name='eventsonmap'),
+            url(r"/events/handle", EventHandleHandler, name='eventHandle'),
             url(r"/visualization", VisualizationHandler, name='visualization'),
             # location configuration
             url(r"/locations", LocationHandler, name='locations'),
@@ -108,11 +110,17 @@ class IndexHandler(BaseHandler):
     def get(self):
         user = self.db.query(models.User).first()
         events = self.db.query(models.Event).filter_by(status=0).all()
-        e_dic = {1:'交通拥堵', 2:'可疑事件', 3:'违章占道', 4:'交通事故' , 5:'行人横穿马路'}
+        e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占道', 4: '交通事故', 5: '行人横穿马路'}
         data = []
         for e in events:
-            location = self.db.query(models.Location).filter_by(id=e.location_id).one()
-            data.append({'id':e.id, 'event_name':e_dic[e.id], 'location':location.name, 'dt': e.dt.strftime('%Y-%m-%d %H:%M:%S')})
+            location = self.db.query(models.Location).filter_by(
+                id=e.location_id).one()
+            data.append({
+                'id': e.id,
+                'event_name': e_dic[e.type],
+                'location': location.name,
+                'dt': e.dt.strftime('%Y-%m-%d %H:%M:%S')
+            })
         num_event = ''
         if events:
             num_event = len(events)
@@ -126,27 +134,61 @@ class EventsHandler(BaseHandler):
     def get(self):
         id = self.get_argument('id')
         event = self.db.query(models.Event).filter_by(id=id).one()
-        location = self.db.query(models.Location).filter_by(id=event.location_id).one()
-        e_dic = {1:'交通拥堵', 2:'可疑事件', 3:'违章占到', 4:'交通事道' , 5:'行人横穿马路'}       
-        data  = {'status': 'success', 'location': location.name, '_event':e_dic[event.type], 'dt': event.dt.strftime('%Y-%m-%d %H:%M:%S'), 'snapshot': event.snapshot}
-        print data
+        location = self.db.query(models.Location).filter_by(
+            id=event.location_id).one()
+        e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占到', 4: '交通事道', 5: '行人横穿马路'}
+        data = {
+            'status': 'success',
+            'location': location.name,
+            '_event': e_dic[event.type],
+            'dt': event.dt.strftime('%Y-%m-%d %H:%M:%S'),
+            'snapshot': event.snapshot
+        }
         self.write(data)
-        
-        
+
+
+class EventHandleHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def post(self):
+        id = self.get_argument('id')
+        event = self.db.query(models.Event).filter_by(id=id).one()
+        event.status = 1
+        self.db.commit()
+        self.write('success')
+
+'''
+class EventsOnMapHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def post(self):
+        events = self.db.query(models.Event).filter_by(status=0).all()
+        data = []
+        for e in events:
+            data.append({'location_id': e.location_id, 'type': e.type})
+        data = json.dumps(data)
+        self.write(data)
+'''
 
 
 class VisualizationHandler(BaseHandler):
+
     @tornado.web.authenticated
     def get(self):
         # form = forms.HelloForm()
         user = self.db.query(models.User).first()
         locations = self.db.query(models.Location).all()
-        num_event = util.getNewEventNum(self)
+        events = self.db.query(models.Event).filter_by(status=0).all()
+        # num_event = util.getNewEventNum(self)
+        num_event = ''
+        if len(events) > 0:
+            num_event = len(events)
         self.render(
             'visualization.html',
             user=user,
             locations=locations,
-            num_event=num_event)
+            num_event=num_event,
+            events=events)
 
 
 class StatisticsHandler(BaseHandler):
@@ -154,15 +196,36 @@ class StatisticsHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user = self.get_current_user()
-        locations = self.db.query(models.Location).all()
+        # locations = self.db.query(models.Location).all()
         num_event = util.getNewEventNum(self)
-        events = self.db.query(models.Event).all()
+        new_events = self.db.query(models.Event).filter_by(status=0).all()
+        all_events = self.db.query(models.Event).all()
+        jam_event = self.db.query(models.Event).filter_by(type=1).all()
+        abnormal_event = self.db.query(models.Event).filter_by(type=2).all()
+        abandom_event = self.db.query(models.Event).filter_by(type=3).all()
+        accident_event = self.db.query(models.Event).filter_by(type=4).all()
+        passerby_event = self.db.query(models.Event).filter_by(type=5).all()
+        num_new = len(new_events)
+        num_all = len(all_events)
+        num_jam = len(jam_event)
+        num_abnormal = len(abnormal_event)
+        num_abandom = len(abandom_event)
+        num_accident = len(accident_event)
+        num_passerby = len(passerby_event)
         self.render(
             'statistics.html',
             user=user,
-            locations=locations,
-            events=events,
-            num_event=num_event)
+            # locations=locations,
+            events=all_events,
+            num_event=num_event,
+            num_new=num_new,
+            num_all=num_all,
+            num_jam=num_jam,
+            num_abnormal=num_abnormal,
+            num_abandom=num_abandom,
+            num_accident=num_accident,
+            num_passerby=num_passerby
+            )
 
     @tornado.web.authenticated
     def post(self):
@@ -287,11 +350,13 @@ class LocationSetupHandler(BaseHandler):
 
 
 class LocationRemoveHandler(BaseHandler):
+
     @tornado.web.authenticated
     def post(self):
         id = self.get_argument("id")
         location = self.db.query(models.Location).filter_by(id=id).one()
         self.db.delete(location)
+        self.db.commit()
         self.write('success')
 
 
@@ -315,7 +380,6 @@ class DepartmentHandler(BaseHandler):
 
     @tornado.web.authenticated
     def get(self):
-        num_event = None
         num_event = util.getNewEventNum(self)
         user = self.get_current_user()
         departments = self.db.query(models.Department).all()
@@ -335,22 +399,26 @@ class DepartmentSetupHandler(BaseHandler):
         phone = self.get_argument("phone")
         mobile = self.get_argument("mobile")
         email = self.get_argument("email")
+        _type = self.get_argument("type")
         department = self.db.query(models.Department).filter_by(id=id).first()
         department.name = name
         department.person = person
         department.phone = phone
         department.mobile = mobile
         department.email = email
+        department.type = _type
         self.db.commit()
         self.write('success')
 
 
 class DepartmentRemoveHandler(BaseHandler):
+
     @tornado.web.authenticated
     def post(self):
         id = self.get_argument("id")
         department = self.db.query(models.Department).filter_by(id=id).one()
         self.db.delete(department)
+        self.db.commit()
         self.write('success')
 
 
@@ -363,11 +431,13 @@ class DepartmentAddHandler(BaseHandler):
         phone = self.get_argument("phone")
         mobile = self.get_argument("mobile")
         email = self.get_argument("email")
+        _type = self.get_argument("type")
         department = models.Department(name=name,
                                        person=person,
                                        phone=phone,
                                        mobile=mobile,
-                                       email=email)
+                                       email=email,
+                                       type=_type)
         self.db.add(department)
         self.db.commit()
         self.write('success')
@@ -451,7 +521,7 @@ class ApiHandler(BaseHandler):
                              status=0)
         self.db.add(event)
         self.db.commit()
-        events = self.db.query(models.Event).all()
+        events = self.db.query(models.Event).filter_by(status=0).all()
         print len(events)
         nb = {'num_event': len(events)}
         print nb

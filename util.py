@@ -14,7 +14,7 @@ def getNewEventNum(session):
 def base64ToImage(snapshot, type):
     e_dic = {1: 'jam', 2: 'abnormal',
              3: 'abandom', 4: 'accident', 5: 'passerby'}
-    path = "static/image/snapshot/" + e_dic[type] + ".snapshot"
+    path = "static/image/snapshot/" + e_dic[int(type)] + ".snapshot"
     f = open(path, "wb")
     f.write(snapshot.decode('base64'))
     f.close()

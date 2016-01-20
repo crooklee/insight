@@ -11,8 +11,8 @@ try:
     data1 = base64.b64encode(f1.read())
 except:
     data1 = None
-payload1 = {"location_id": sys.argv[1], "event_type": sys.argv[2],
-            "event_factor": sys.argv[3], "snapshot": data1}
+payload1 = {"location_id": sys.argv[4], "event_type": sys.argv[4],
+            "event_factor": sys.argv[4], "snapshot": data1}
 
 try:
     requests.post("http://127.0.0.1:8888/api", data=json.dumps(payload1))

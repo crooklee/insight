@@ -14,9 +14,6 @@ $("#visualization").attr('class','active');
           <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/accident.png">:交通事故 </span>
           <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/passerby.png">:行人横穿道路 </span>
           <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/abnormal.png">:可疑事件 </span></div>
-
-   
-
     <div class="row">
       <div class="well" style="margin-top:5px;height:600px;">
         <div id="i-map" style="width: 100%; height:100%"></div>
@@ -127,11 +124,47 @@ $("#visualization").attr('class','active');
        ev_list['passerby'] = createEvent(5, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        location_list['{{l.id}}']=new _location('{{l.id}}', '{{l.name}}', {{l.lng}}, {{l.lat}}, ev_list) 
     {%end%}
+
+    {%for e in events%}
+        {% if e.type == 1%}
+            location_list[{{e.location_id}}].events['jam'].bmap_marker.show()
+        {%end%}
+        {% if e.type == 2%}
+            location_list[{{e.location_id}}].events['abnormal'].bmap_marker.show()
+        {%end%}
+        {% if e.type == 3%}
+            location_list[{{e.location_id}}].events['abandom'].bmap_marker.show()
+        {%end%}
+        {% if e.type == 4%}
+            location_list[{{e.location_id}}].events['accident'].bmap_marker.show()
+        {%end%}
+        {% if e.type == 5%}
+            location_list[{{e.location_id}}].events['passerby'].bmap_marker.show()
+        {%end%}
+    {%end%}
+
+    
+
     console.log(location_list)
 </script>
 
 
 <script>
+
+    /*
+    $(document).ready(function(){
+        $.ajax({
+            url: '/eventsonmap',
+            type: 'POST',
+            success:function(rt){
+                  
+            },
+            error:function(){
+            }
+       })
+    })
+    */  
+
     var ws = new WebSocket('ws://127.0.0.1:8888/ws');
     var $message = $('#message');
     
@@ -202,9 +235,7 @@ $("#visualization").attr('class','active');
                marker.show()
            }  else {
                marker.hide() 
-           }
-
-                        
+           }                       
        }
        if(json.type==4){        
            // accident
@@ -215,8 +246,7 @@ $("#visualization").attr('class','active');
                marker.show()
            }  else {
                marker.hide() 
-           }  
-                   
+           }                     
        }
        if(json.type==5){        
            //  passerby

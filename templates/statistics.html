@@ -13,54 +13,75 @@ $("#statistics").attr('class','active');
         </div>
         
         <div class="row">
+        <span>总体事件统计:</span><br>
+        <label><span>异常事件总数: </span><span>{{num_all}}</span></label>
+        <br>
+        <label><span>待处理事件数: </span><span>{{num_new}}</span></label>
+        <hr>
+        <!--
             <div class="col-lg-2">
                 <div class="input-group">
                     
-                    <input type="text" class="form-control" id="datetimepicker-start" placeholder="选择日期">
-                    </div><!-- /input-group -->
-                    </div><!-- /.col-lg-6 -->
+                    
+                    </div>
+                    </div>
                     <div class="col-lg-2">
                         <div class="dropdown">
                             <button class="btn btn-default dropdown-toggle" type="button" id="locationList" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                             <span id="locationListTop">选择监控点位</span>
                             <span class="caret"></span>
                             </button>
-                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                                {% for l in locations%}
-                                <li><a href="#" onclick="selectLocation('{{l.name}}');">{{l.name}}</a></li>
-                                {%end%}                                
-                            </ul>
+                            
                         </div>
-                        </div><!-- /.col-lg-6 -->
+                        </div>
                     </div>
-               {%for e in events%}
-               <li>{{e.id}}, {{e.location_id}}, {{e.type}}</li>
-               {%end%}
-                <div class="row">
+             -->
+                <span>分类事件统计:</span><br>
+                <label><span>异常事件分类饼图:</span></label>
                 <div style="padding-left:20px;padding-top:20px;">
-                    <canvas  id="1myChart" width="1000" height="500"></canvas>
+                    <canvas  id="myChart" width="200" height="200"></canvas>
                 </div>
                 </div>
             {% end %}
 
             {% block script%}
                 <script>
-                function selectLocation(location){
-                    $('#locationListTop').html(location);   
-                }
-                var data = {
-                labels: ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"],
-                datasets: [
-                {
-                label: "My First dataset",
-                fillColor: "rgba(220,220,220,0.2)",
-                strokeColor: "rgba(220,220,220,1)",
-                data: [65, 59, 80, 81, 56, 55, 40, 65, 59, 80, 81, 56, 55, 40,65, 59, 80, 81, 56, 55, 40,10,10,9]
-                },
+                
+                var data = [
+                   {
+                        value: {{num_jam}},
+                        color:"#F7464A",
+                        highlight: "#FF5A5E",
+                        label: "道路拥堵"
+                   },
+                   {
+                        value:  {{num_abnormal}},
+                        color: "#46BFBD",
+                        highlight: "#5AD3D1",
+                        label: "可疑事件"
+                   },
+                   {
+                        value: {{num_abandom}},
+                        color: "#FDB45C",
+                        highlight: "#FFC870",
+                        label: "违章占道"
+                   },
+                   {
+                        value: {{num_accident}},
+                        color:"#DB7093",
+                        highlight: "#FFC0CB",
+                        label: "交通事故"
+                   },
+                   {
+                        value:  {{num_passerby}},
+                        color: "#9932CC",
+                        highlight: "#8B008B",
+                        label: "行人横穿马路"
+                   },
                 ]
-                };
+
                 var ctx = document.getElementById("myChart").getContext("2d");
-                var myLineChart = new Chart(ctx).Bar(data);
-                $('#datetimepicker-start').datepicker();
+                var myPieChart = new Chart(ctx).Pie(data);
+                
                 </script>
             {% end %}
