@@ -64,3 +64,17 @@ class Department(Base):
 
     def __repr__(self):
         return "<Department(id='%s'>" % (self.id)
+
+
+class Mangement(Base):
+    __tablename__ = 'departments'
+    id = Column(Integer, primary_key=True)
+    type = Column(Integer)
+    name = Column(String)
+    person = Column(String)
+    phone = Column(String)
+    mobile = Column(String)
+    email = Column(String)
+
+    def __repr__(self):
+        return "<Department(id='%s'>" % (self.id)

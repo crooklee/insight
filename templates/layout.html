@@ -13,7 +13,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/bootstrap-theme.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" type="text/css" href="/static/css/jquery.datetimepicker.css"/>
 
     <!-- Custom styles for this template -->
@@ -25,7 +25,8 @@
         label {max-width:none;}
     </style>
 
-    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=F4VeNCCZnyk1zEkrXk3t2z27"></script>
+    {% block map%}
+    {% end %}
     <!--
     <script type="text/javascript" src="http://api.map.baidu.com/library/Heatmap/2.0/src/Heatmap_min.js"></script>
      -->
@@ -88,8 +89,6 @@
 
 </body>
 
-{% block map %}
-{% end %}
 
 {%block script%}
 {%end%}

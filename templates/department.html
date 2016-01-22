@@ -104,26 +104,30 @@ $("#departments").attr('class','active');
                                   <input type="text" class="form-control" id="name_setup" name="name" placeholder="名称">
                                 </div>
                                 <div class="form-group">
-                                  <label for="longitude">联系人:</label>
+                                  <label for="person">联系人:</label>
                                   <input type="text" class="form-control" id="person_setup" name="person" placeholder="联系人">
                                 </div>
                                 <div class="form-group">
-                                  <label for="latitude">手机号码:</label> 
+                                  <label for="phone">手机号码:</label> 
                                   <input type="text" class="form-control" id="phone_setup" name="phone" placeholder="手机号码">
                                 </div>
                                 <div class="form-group">
-                                  <label for="latitude">座机号码:</label>
+                                  <label for="mobile">座机号码:</label>
                                   <input type="text" class="form-control" id="mobile_setup" name="mobile" placeholder="座机号码">
                                 </div>
                                 <div class="form-group">
-                                  <label for="latitude">邮箱地址:</label>
+                                  <label for="email">邮箱地址:</label>
                                   <input type="text" class="form-control" id="email_setup" name="email" placeholder="邮箱地址">
                                 </div>
                                 <div class="form-group">
-                                  <label for="latitude">接受告警类型:</label>
-                                  <input type="text" class="form-control" id="type_setup" name="lat" placeholder="接受告警类型">
+                                  <label for="event">接受告警类型:</label><br>
+                                  
+                                  {%for e in e_dic%}
+                                  <input class="btn btn-default select_event" type="button" value="{{e_dic[e]}}" id="event_{{e}}">
+                                  {%end%}
+                                  
                                 </div>  
-                                 <input type="hidden" id="id_setup" name="id">                                  
+                                <input type="hidden" id="id_setup" name="id">                                  
                               </form>
                             </div>
                             <div class="modal-footer">
@@ -165,6 +169,19 @@ $("#departments").attr('class','active');
 
 {%block script%}
 <script type="text/javascript">
+    $(".select_event").click(function(event){
+       var button = $(event.target)
+       if(button.hasClass('btn-default')){
+           button.removeClass('btn-default') 
+           button.addClass('btn-success') 
+       }
+       else if(button.hasClass('btn-success')){
+           button.removeClass('btn-success') 
+           button.addClass('btn-default') 
+       }
+    });
+
+
     $('#setupModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) 
         console.log(button)
@@ -202,7 +219,15 @@ $("#departments").attr('class','active');
         var phone = $('#phone_setup').val()
         var mobile = $('#mobile_setup').val()
         var email = $('#email_setup').val()
-        var type = $('#type_setup').val()
+        var ev_list = $('.btn-success.select_event')
+        var type = []
+        for(var i=0;i<ev_list.size();i++){
+          type.push(ev_list[i].id.split('_')[1])
+        }
+        
+         
+        console.log(type) 
+        
         $('#saveSetup').html('保存中...')
         $.ajax({
             url: '/departments/setup',
@@ -214,7 +239,7 @@ $("#departments").attr('class','active');
                phone:phone,
                mobile:mobile,
                email:email,
-               type:type
+               type:type.toString()
             },
             success:function(rt){
                   if(rt="success")location.reload();
@@ -222,6 +247,7 @@ $("#departments").attr('class','active');
             error:function(){
             }
         })
+ 
     });
 
     $('#rm').click(function(){

@@ -30,6 +30,7 @@ executor = concurrent.futures.ThreadPoolExecutor(2)
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, type=bool)
 define("db_path", default='sqlite:///./insight.db', type=str)
+e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占道', 4: '交通事故', 5: '行人横穿马路'}
 
 
 class Application(tornado.web.Application):
@@ -38,7 +39,7 @@ class Application(tornado.web.Application):
         handlers = [
             url(r"/", IndexHandler, name='index'),
             url(r"/events", EventsHandler, name='events'),
-            #url(r"/eventsonmap", EventsOnMapHandler, name='eventsonmap'),
+            # url(r"/eventsonmap", EventsOnMapHandler, name='eventsonmap'),
             url(r"/events/handle", EventHandleHandler, name='eventHandle'),
             url(r"/visualization", VisualizationHandler, name='visualization'),
             # location configuration
@@ -110,7 +111,7 @@ class IndexHandler(BaseHandler):
     def get(self):
         user = self.db.query(models.User).first()
         events = self.db.query(models.Event).filter_by(status=0).all()
-        e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占道', 4: '交通事故', 5: '行人横穿马路'}
+        # e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占道', 4: '交通事故', 5: '行人横穿马路'}
         data = []
         for e in events:
             location = self.db.query(models.Location).filter_by(
@@ -136,7 +137,7 @@ class EventsHandler(BaseHandler):
         event = self.db.query(models.Event).filter_by(id=id).one()
         location = self.db.query(models.Location).filter_by(
             id=event.location_id).one()
-        e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占到', 4: '交通事道', 5: '行人横穿马路'}
+        # e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占到', 4: '交通事道', 5: '行人横穿马路'}
         data = {
             'status': 'success',
             'location': location.name,
@@ -225,7 +226,7 @@ class StatisticsHandler(BaseHandler):
             num_abandom=num_abandom,
             num_accident=num_accident,
             num_passerby=num_passerby
-            )
+        )
 
     @tornado.web.authenticated
     def post(self):
@@ -386,7 +387,8 @@ class DepartmentHandler(BaseHandler):
         self.render('department.html',
                     user=user,
                     departments=departments,
-                    num_event=num_event)
+                    num_event=num_event,
+                    e_dic=e_dic)
 
 
 class DepartmentSetupHandler(BaseHandler):
@@ -400,13 +402,16 @@ class DepartmentSetupHandler(BaseHandler):
         mobile = self.get_argument("mobile")
         email = self.get_argument("email")
         _type = self.get_argument("type")
+        print "-"*20
+        print name, _type, len(_type.split(','))
+        print "-"*20
         department = self.db.query(models.Department).filter_by(id=id).first()
         department.name = name
         department.person = person
         department.phone = phone
         department.mobile = mobile
         department.email = email
-        department.type = _type
+        # department.type = _type
         self.db.commit()
         self.write('success')
 
@@ -502,17 +507,14 @@ class ApiHandler(BaseHandler):
         raw_data = self.request.body
         res = json.loads(raw_data)
         location_id = res['location_id']
+        location = self.db.query(
+            models.Location).filter_by(id=location_id).one()
         _type = res['event_type']
         factor = res['event_factor']
         snapshot = res['snapshot']
         raw_dt = datetime.now()
         dt = raw_dt.strftime('%Y-%m-%d %H:%M:%S')
-        data = {"snapshot": snapshot, "factor": factor,
-                "location_id": location_id, "type": _type, "dt": dt}
-        data = json.dumps(data)
-        for c in cl:
-            c.write_message(data)
-        snapshot_path = util.base64ToImage(snapshot, _type)
+        snapshot_path = util.base64ToImage(snapshot, _type, location.id)
         event = models.Event(location_id=location_id,
                              type=_type,
                              factor=factor,
@@ -523,8 +525,19 @@ class ApiHandler(BaseHandler):
         self.db.commit()
         events = self.db.query(models.Event).filter_by(status=0).all()
         print len(events)
+        data = {
+            "snapshot": snapshot,
+            "factor": factor,
+            "event_id": event.id,
+            "location_name": location.name,
+            "type": _type,
+            "dt": dt,
+            "event_name": e_dic[int(_type)]
+        }
+        data = json.dumps(data)
+        for c in cl:
+            c.write_message(data)
         nb = {'num_event': len(events)}
-        print nb
         nb = json.dumps(nb)
         for gc in gcl:
             gc.write_message(nb)

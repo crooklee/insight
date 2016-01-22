@@ -140,6 +140,19 @@ ws.onopen = function(){
 };
 ws.onmessage = function(ev){
      
+    var ev_info = JSON.parse(ev.data);
+    console.log(ev_info.location_name)
+    console.log(ev_info.type)
+    console.log(ev_info.dt)
+    console.log(ev_info.factor)
+
+    var head = '<div class="alert alert-danger alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><strong class="col-md-1">警告!</strong>'
+    var event_name = '<span class="col-md-2">事件: <strong>[' +ev_info.event_name + ']</strong></span>'
+    var location = '<span class="col-md-3">监控位置: <strong>[' + ev_info.location_name + ']</strong></span>'
+    var dt = '<span class="col-md-5">时间: <strong>[' +ev_info.dt+ ']</strong></span>'
+    var handle_button = '<input class="btn btn-danger btn-xs" type="button" value="处理" data-toggle="modal" data-target="#handleModal" data-id='+ev_info.event_id+'></div>' 
+    $('#event_list').append(head+event_name+location+dt+handle_button)
+
 };
 ws.onclose = function(ev){
   $message.attr("class", 'hide label label-important');

@@ -11,10 +11,11 @@ def getNewEventNum(session):
     return num_event
 
 
-def base64ToImage(snapshot, type):
+def base64ToImage(snapshot, type, location_id):
     e_dic = {1: 'jam', 2: 'abnormal',
              3: 'abandom', 4: 'accident', 5: 'passerby'}
-    path = "static/image/snapshot/" + e_dic[int(type)] + ".snapshot"
+    path = "static/image/snapshot/" + \
+        e_dic[int(type)] + str(location_id) + ".snapshot"
     f = open(path, "wb")
     f.write(snapshot.decode('base64'))
     f.close()
