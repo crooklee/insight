@@ -384,14 +384,46 @@ class DepartmentHandler(BaseHandler):
         num_event = util.getNewEventNum(self)
         user = self.get_current_user()
         departments = self.db.query(models.Department).all()
+        data = []
+        for d in departments:
+            mgs = self.db.query(models.Management).filter_by(
+                department_id=d.id)
+            data.append({'department': d, 'managments': mgs})
         self.render('department.html',
                     user=user,
                     departments=departments,
+                    data=data,
                     num_event=num_event,
                     e_dic=e_dic)
 
 
 class DepartmentSetupHandler(BaseHandler):
+
+    @tornado.web.authenticated
+    def get(self):
+        id = self.get_argument("id")
+        department = self.db.query(models.Department).filter_by(id=id).one()
+        name = department.name
+        person = department.person
+        phone = department.phone
+        mobile = department.mobile
+        email = department.email
+        # department.type = _type
+        mgs = self.db.query(models.Management).filter_by(
+            department_id=department.id).all()
+        event_types = []
+        for m in mgs:
+            event_types.append(m.event_type)
+        data = {
+            'status': 'success',
+            'name': name,
+            'person': person,
+            'phone': phone,
+            'mobile': mobile,
+            'email': email,
+            'event_types': event_types
+        }
+        self.write(data)
 
     @tornado.web.authenticated
     def post(self):
@@ -402,9 +434,9 @@ class DepartmentSetupHandler(BaseHandler):
         mobile = self.get_argument("mobile")
         email = self.get_argument("email")
         _type = self.get_argument("type")
-        print "-"*20
+        print "-" * 20
         print name, _type, len(_type.split(','))
-        print "-"*20
+        print "-" * 20
         department = self.db.query(models.Department).filter_by(id=id).first()
         department.name = name
         department.person = person
@@ -412,6 +444,13 @@ class DepartmentSetupHandler(BaseHandler):
         department.mobile = mobile
         department.email = email
         # department.type = _type
+        mgs = self.db.query(models.Management).filter_by(
+            department_id=department.id).all()
+        for mg in mgs:
+            self.db.delete(mg)
+        for t in _type.split(','):
+            mg = models.Management(event_type=t, department_id=department.id)
+            self.db.add(mg)
         self.db.commit()
         self.write('success')
 
@@ -422,6 +461,10 @@ class DepartmentRemoveHandler(BaseHandler):
     def post(self):
         id = self.get_argument("id")
         department = self.db.query(models.Department).filter_by(id=id).one()
+        mgs = self.db.query(models.Management).filter_by(
+            department_id=department.id).all()
+        for mg in mgs:
+            self.db.delete(mg)
         self.db.delete(department)
         self.db.commit()
         self.write('success')
@@ -437,13 +480,19 @@ class DepartmentAddHandler(BaseHandler):
         mobile = self.get_argument("mobile")
         email = self.get_argument("email")
         _type = self.get_argument("type")
+        print "-" * 20
+        print name, _type, len(_type.split(','))
+        print "-" * 20
         department = models.Department(name=name,
                                        person=person,
                                        phone=phone,
                                        mobile=mobile,
-                                       email=email,
-                                       type=_type)
+                                       email=email)
         self.db.add(department)
+        self.db.commit()
+        for t in _type.split(','):
+            mg = models.Management(event_type=t, department_id=department.id)
+            self.db.add(mg)
         self.db.commit()
         self.write('success')
 

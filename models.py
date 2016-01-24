@@ -66,15 +66,11 @@ class Department(Base):
         return "<Department(id='%s'>" % (self.id)
 
 
-class Mangement(Base):
-    __tablename__ = 'departments'
+class Management(Base):
+    __tablename__ = 'managements'
     id = Column(Integer, primary_key=True)
-    type = Column(Integer)
-    name = Column(String)
-    person = Column(String)
-    phone = Column(String)
-    mobile = Column(String)
-    email = Column(String)
+    event_type = Column(Integer)
+    department_id = Column(Integer, ForeignKey('departments.id'))
 
     def __repr__(self):
-        return "<Department(id='%s'>" % (self.id)
+        return "<Management(id='%s'>" % (self.id)

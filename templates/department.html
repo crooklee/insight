@@ -23,22 +23,24 @@ $("#departments").attr('class','active');
                 </tr>
               </thead>
               <tbody>
-
-              {% for d in departments%}
+               {% for d in data%}
                 <tr>                  
-                  <td>{{d.name}}</td>
-                  <td>{{d.person}}</td>
+                  <td>{{d['department'].name}}</td>
+                  <td>{{d['department'].person}}</td>
                   <td>                     
-                      <span><img src="/static/image/telephone.svg" style="height:16px;">: {{d.phone}}  | </span> 
-                      <span><img src="/static/image/mobile.svg" style="height:16px;">: {{d.mobile}}  | </span> 
-                      <span><img src="/static/image/mail.svg" style="height:16px;">: {{d.email}}   </span>                                                               
+                      <span><img src="/static/image/telephone.svg" style="height:16px;">: {{d['department'].phone}}  | </span> 
+                      <span><img src="/static/image/mobile.svg" style="height:16px;">: {{d['department'].mobile}}  | </span> 
+                      <span><img src="/static/image/mail.svg" style="height:16px;">: {{d['department'].email}}   </span>
                   </td>
-                  <td>{{d.type}}</td>
-                  <td>{{d.id}}</td>
                   <td>
-                      <input class="btn btn-info btn-xs" type="button"  data-toggle="modal" data-target="#setupModal" data-id="{{d.id}}" data-name="{{d.name}}" data-person="{{d.person}}" data-phone="{{d.phone}}" data-mobile="{{d.mobile}}"  
-                      data-type="{{d.type}}"  data-email="{{d.email}}" value="设置">                      
-                      <input class="btn btn-danger btn-xs" type="button" value="删除" data-toggle="modal" data-target="#rmModal" data-id="{{d.id}}">
+                      {%for m in d['managments']%}
+                          <a class="btn btn-default btn-xs" role="button">{{e_dic[m.event_type]}}</a>
+                      {%end%}
+                  </td>
+                  <td>{{d['department'].id}}</td>
+                  <td>
+                      <input class="btn btn-info btn-xs"  type="button"  data-toggle="modal" data-target="#setupModal"  data-id="{{d['department'].id}}"  value="设置">                  
+                      <input class="btn btn-danger btn-xs" type="button" value="删除" data-toggle="modal" data-target="#rmModal" data-id="{{d['department'].id}}">
                   </td>
                 </tr>
               {%end%}
@@ -77,7 +79,9 @@ $("#departments").attr('class','active');
                                 </div>
                                 <div class="form-group">
                                   <label for="latitude">接受告警类型:</label>
-                                  <input type="text" class="form-control" id="type_added" name="lat" placeholder="接受告警类型">
+                                  {%for e in e_dic%}
+                                  <input class="btn btn-default select_event" type="button" value="{{e_dic[e]}}" id="event_add_{{e}}">
+                                  {%end%}                                  
                                 </div>                                 
                       </form>
                     </div>
@@ -123,7 +127,7 @@ $("#departments").attr('class','active');
                                   <label for="event">接受告警类型:</label><br>
                                   
                                   {%for e in e_dic%}
-                                  <input class="btn btn-default select_event" type="button" value="{{e_dic[e]}}" id="event_{{e}}">
+                                  <input class="btn btn-default select_event" type="button" value="{{e_dic[e]}}" id="event_setup_{{e}}">
                                   {%end%}
                                   
                                 </div>  
@@ -181,27 +185,41 @@ $("#departments").attr('class','active');
        }
     });
 
-
     $('#setupModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) 
-        console.log(button)
+        var button = $(event.relatedTarget)
         var id = button.data('id')
-        var name = button.data('name')
-        var person = button.data('person')
-        var phone = button.data('phone')
-        var mobile = button.data('mobile')
-        var email = button.data('email')
-        var type = button.data('type')
-        var modal = $(this)
-        console.log(modal)
-        modal.find('#id_setup').val(id)
-        modal.find('#name_setup').val(name)
-        modal.find('#person_setup').val(person)
-        modal.find('#phone_setup').val(phone)
-        modal.find('#mobile_setup').val(mobile)
-        modal.find('#email_setup').val(email)
-        modal.find('#type_setup').val(type)
-     }); 
+        $.ajax({
+            url: '/departments/setup',
+            type: 'GET',
+            data: {
+               id:id
+            },
+            success:function(rt){
+                if(rt.status=='success'){                    
+                    $('#setupModal').find('#id_setup').val(id)
+                    $('#setupModal').find('#name_setup').val(rt.name)
+                    $('#setupModal').find('#person_setup').val(rt.person)
+                    $('#setupModal').find('#phone_setup').val(rt.phone)
+                    $('#setupModal').find('#mobile_setup').val(rt.mobile)
+                    $('#setupModal').find('#email_setup').val(rt.email)                    
+                    for(var i=0;i<rt.event_types.length;i++){
+                        console.log(rt.event_types[i])
+                        id='event_setup_'+rt.event_types[i]
+                        $('#'+id).removeClass('btn-default')
+                        $('#'+id).addClass('btn-success') 
+                    }
+                }
+            },
+            error:function(){
+            }
+        }) 
+     });
+
+     $('#setupModal').on('hidden.bs.modal', function (event) {
+        $(".select_event").removeClass('btn-success')
+        $(".select_event").addClass('btn-default') 
+     });
+
 
     $('#rmModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget) 
@@ -222,12 +240,8 @@ $("#departments").attr('class','active');
         var ev_list = $('.btn-success.select_event')
         var type = []
         for(var i=0;i<ev_list.size();i++){
-          type.push(ev_list[i].id.split('_')[1])
+          type.push(ev_list[i].id.split('_')[2])
         }
-        
-         
-        console.log(type) 
-        
         $('#saveSetup').html('保存中...')
         $.ajax({
             url: '/departments/setup',
@@ -246,8 +260,7 @@ $("#departments").attr('class','active');
             },
             error:function(){
             }
-        })
- 
+        }) 
     });
 
     $('#rm').click(function(){
@@ -273,7 +286,12 @@ $("#departments").attr('class','active');
         var phone = $('#phone_added').val()
         var mobile = $('#mobile_added').val()
         var email = $('#email_added').val()
-        var type = $('#type_added').val()
+        var ev_list = $('.btn-success.select_event')
+        var type = []
+        for(var i=0;i<ev_list.size();i++){
+          type.push(ev_list[i].id.split('_')[2])
+        }         
+        console.log(type) 
         $('#saveAdd').html('保存中...')
         $.ajax({
             url: '/departments/add',
@@ -284,7 +302,7 @@ $("#departments").attr('class','active');
                phone:phone,
                mobile:mobile,
                email:email,
-               type:type
+               type:type.toString()
             },
             success:function(rt){
                   if(rt="success")location.reload();
