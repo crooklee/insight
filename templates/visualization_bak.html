@@ -32,31 +32,31 @@ $("#visualization").attr('class','active');
     /* 
      * eg:format="yyyy-MM-dd hh:mm:ss"; 
      */  
-       var o = {  
-          "M+" : this.getMonth() + 1, // month  
-          "d+" : this.getDate(), // day  
-          "h+" : this.getHours(), // hour  
-          "m+" : this.getMinutes(), // minute  
-          "s+" : this.getSeconds(), // second  
-          "q+" : Math.floor((this.getMonth() + 3) / 3), // quarter  
-          "S" : this.getMilliseconds()  
-          // millisecond  
-       }  
-    
-      if (/(y+)/.test(format)) {  
-          format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4  
-                          - RegExp.$1.length));  
-      }  
-    
-      for (var k in o) {  
-          if (new RegExp("(" + k + ")").test(format)) {  
-              format = format.replace(RegExp.$1, RegExp.$1.length == 1  
-                              ? o[k]  
-                              : ("00" + o[k]).substr(("" + o[k]).length));  
-          }  
-      }  
-        return format;  
-    }
+     var o = {  
+        "M+" : this.getMonth() + 1, // month  
+        "d+" : this.getDate(), // day  
+        "h+" : this.getHours(), // hour  
+        "m+" : this.getMinutes(), // minute  
+        "s+" : this.getSeconds(), // second  
+        "q+" : Math.floor((this.getMonth() + 3) / 3), // quarter  
+        "S" : this.getMilliseconds()  
+        // millisecond  
+     }  
+  
+    if (/(y+)/.test(format)) {  
+        format = format.replace(RegExp.$1, (this.getFullYear() + "").substr(4  
+                        - RegExp.$1.length));  
+    }  
+  
+    for (var k in o) {  
+        if (new RegExp("(" + k + ")").test(format)) {  
+            format = format.replace(RegExp.$1, RegExp.$1.length == 1  
+                            ? o[k]  
+                            : ("00" + o[k]).substr(("" + o[k]).length));  
+        }  
+    }  
+    return format;  
+}
 
     
 
@@ -89,22 +89,23 @@ $("#visualization").attr('class','active');
         var eventName = ''
         if(_type==1) {
             icon='/static/image/jam.png'            
-            
+            eventName = '道路拥堵'
         }
         else if(_type==2) {
             icon='/static/image/abnormal.png'            
-            
+            eventName = '拥堵指数'
+
         }else if(_type==3) {
             icon='/static/image/park.png'            
-            
+            eventName = '异常占道'
         }
         else if(_type==4) {
             icon='/static/image/accident.png'            
-            
+            eventName = '交通事故 '
         } 
         else if(_type==5) {
             icon='/static/image/passerby.png'            
-           
+            eventName = '行人穿马路 '
         }
         
         var point = new BMap.Point(parseFloat(lng),parseFloat(lat));
@@ -195,7 +196,10 @@ $("#visualization").attr('class','active');
       $message.text('open');
     };
     ws.onmessage = function(ev){
-       var json = JSON.parse(ev.data)
+       var json = JSON.parse(ev.data);
+       console.log(json.type)
+       console.log(json)
+       console.log(location_list[json.location_id])
        var name = location_list[json.location_id].name       
        var snapshot = json.snapshot
        console.log(snapshot)
@@ -204,7 +208,9 @@ $("#visualization").attr('class','active');
        if(json.type==1){
           //jam
           var marker =  location_list[json.location_id].events['jam'].bmap_marker 
-           if(json.factor>80) {          
+           if(json.factor>80) {               
+               var eventName = '道路拥堵'            
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
                marker.show()
            }  else {
                marker.hide() 
@@ -214,7 +220,9 @@ $("#visualization").attr('class','active');
        if(json.type==2){        
            //abnormal
            var marker =  location_list[json.location_id].events['abnormal'].bmap_marker 
-           if(json.factor>0) { 
+           if(json.factor>0) {               
+               var eventName = '道路异常'            
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
                marker.show()
            }  else {
                marker.hide() 
@@ -225,6 +233,8 @@ $("#visualization").attr('class','active');
            //abandom
            var marker =  location_list[json.location_id].events['abandom'].bmap_marker 
            if(json.factor>0) {               
+               var eventName = '异常占道'            
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
                marker.show()
            }  else {
                marker.hide() 
@@ -234,7 +244,9 @@ $("#visualization").attr('class','active');
            // accident
            var marker =  location_list[json.location_id].events['accident'].bmap_marker
            if(json.factor>0) {            
-              marker.show()
+               var eventName = '交通事故'              
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
+               marker.show()
            }  else {
                marker.hide() 
            }                     
@@ -243,7 +255,9 @@ $("#visualization").attr('class','active');
            //  passerby
            var marker =  location_list[json.location_id].events['passerby'].bmap_marker 
            if(json.factor>0) {              
-              marker.show()
+               var eventName = '行人横穿马路'             
+               creatInfoWindow(name, eventName, marker, json.type, dt, snapshot)
+               marker.show()
            }  else {
                marker.hide() 
            }     

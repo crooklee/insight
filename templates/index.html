@@ -51,14 +51,7 @@
                               </form>
                               <hr>
                               关联委办(参考):
-                                <ul id="deparments">
-                                    <li id="deparment">吴江区公路管理处: 
-                                    <span id="name">吕永其(主任)</span>
-                                    <span><img src="/static/image/telephone.svg" style="height:16px;">: <span id="mobile">13913075937</span>| </span> 
-                                    <span><img src="/static/image/mobile.svg" style="height:16px;">:  <span id="phone">63416275</span>| </span> 
-                                    <span><img src="/static/image/mail.svg" style="height:16px;">: <span id="email">lyq@wjjtj.gov.cn</span>    </span>    
-                                    </li>   
-                                </ul>
+                                <ul id="d_list"></ul>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
@@ -83,13 +76,22 @@ function show_waring(){
 }
 
 
+$('#handleModal').on('hidden.bs.modal', function (event) {
+    $('#d_list').html('')
+});
+
 $('#handleModal').on('show.bs.modal', function (ev) {
     var button = $(ev.relatedTarget) 
-    console.log(button)
+    //console.log(button)
     var id = button.data('id') 
     var modal = $(this)
+    var li_begin = "<li>"
+    var mobile_icon = '<img src="/static/image/mobile.svg" style="height:16px;">:'
+    var phone_icon = '<img src="/static/image/telephone.svg" style="height:16px;">:'
+    var email_icon = '<img src="/static/image/mail.svg" style="height:16px;">:'
+    var li_end = "</li>"
     $.ajax({
-        url: '/events',
+        url: '/event',
         type: 'GET',
         data: {id:id},
         success:function(rt){
@@ -97,10 +99,26 @@ $('#handleModal').on('show.bs.modal', function (ev) {
               if(rt.status="success"){
                   modal.find("#id").html(id)
                   modal.find('#location').html(rt.location)
-                  modal.find('#event').html(rt._event)
+                  modal.find('#event').html(rt.event)
                   modal.find('#dt').html(rt.dt)
                   modal.find('#snapshot').attr("src", rt.snapshot)
-                  modal.find('#departments').html(rt.departments)
+
+                  for(var i=0;i<rt.departments.length;i++){
+                      
+                      var node = li_begin + 
+                                  rt.departments[i].name + 
+                                  ":" +
+                                  rt.departments[i].person +
+                                  " " + mobile_icon +
+                                  rt.departments[i].mobile + "|" +  phone_icon +
+                                  rt.departments[i].phone + "|" + email_icon +
+                                  rt.departments[i].email +
+                                  li_end
+                      //console.log(node)
+                      modal.find('#d_list').append(node)   
+                  }
+                      
+
              };
         },
         error:function(){
@@ -114,7 +132,7 @@ $('#handled').on('click', function (ev) {
         var id = $('#id').html()        
         var modal = $(this)
         $.ajax({
-            url: '/events/handle',
+            url: '/event/handle',
             type: 'POST',
             data: {
                id:id

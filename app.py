@@ -38,9 +38,9 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             url(r"/", IndexHandler, name='index'),
-            url(r"/events", EventsHandler, name='events'),
+            url(r"/event", EventHandler, name='event'),
             # url(r"/eventsonmap", EventsOnMapHandler, name='eventsonmap'),
-            url(r"/events/handle", EventHandleHandler, name='eventHandle'),
+            url(r"/event/handle", EventHandleHandler, name='eventHandle'),
             url(r"/visualization", VisualizationHandler, name='visualization'),
             # location configuration
             url(r"/locations", LocationHandler, name='locations'),
@@ -129,7 +129,7 @@ class IndexHandler(BaseHandler):
             'index.html', user=user, num_event=num_event, events=data)
 
 
-class EventsHandler(BaseHandler):
+class EventHandler(BaseHandler):
 
     @tornado.web.authenticated
     def get(self):
@@ -137,13 +137,28 @@ class EventsHandler(BaseHandler):
         event = self.db.query(models.Event).filter_by(id=id).one()
         location = self.db.query(models.Location).filter_by(
             id=event.location_id).one()
+        mgs = self.db.query(models.Management).filter_by(
+            event_type=event.type).all()
+        d_list = []
+        for m in mgs:
+            d = self.db.query(models.Department).filter_by(
+                id=m.department_id).one()
+            item = {
+                'name': d.name,
+                'person': d.person,
+                'mobile': d.mobile,
+                'phone': d.phone,
+                'email': d.email
+            }
+            d_list.append(item)
         # e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占到', 4: '交通事道', 5: '行人横穿马路'}
         data = {
             'status': 'success',
             'location': location.name,
-            '_event': e_dic[event.type],
+            'event': e_dic[event.type],
             'dt': event.dt.strftime('%Y-%m-%d %H:%M:%S'),
-            'snapshot': event.snapshot
+            'snapshot': event.snapshot,
+            'departments': d_list
         }
         self.write(data)
 
@@ -449,6 +464,8 @@ class DepartmentSetupHandler(BaseHandler):
         for mg in mgs:
             self.db.delete(mg)
         for t in _type.split(','):
+            if not t:
+                continue
             mg = models.Management(event_type=t, department_id=department.id)
             self.db.add(mg)
         self.db.commit()
@@ -491,6 +508,8 @@ class DepartmentAddHandler(BaseHandler):
         self.db.add(department)
         self.db.commit()
         for t in _type.split(','):
+            if not t:
+                continue
             mg = models.Management(event_type=t, department_id=department.id)
             self.db.add(mg)
         self.db.commit()
@@ -579,6 +598,7 @@ class ApiHandler(BaseHandler):
             "factor": factor,
             "event_id": event.id,
             "location_name": location.name,
+            "location_id": location.id,
             "type": _type,
             "dt": dt,
             "event_name": e_dic[int(_type)]

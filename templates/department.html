@@ -28,8 +28,8 @@ $("#departments").attr('class','active');
                   <td>{{d['department'].name}}</td>
                   <td>{{d['department'].person}}</td>
                   <td>                     
-                      <span><img src="/static/image/telephone.svg" style="height:16px;">: {{d['department'].phone}}  | </span> 
                       <span><img src="/static/image/mobile.svg" style="height:16px;">: {{d['department'].mobile}}  | </span> 
+                      <span><img src="/static/image/telephone.svg" style="height:16px;">: {{d['department'].phone}}  | </span> 
                       <span><img src="/static/image/mail.svg" style="height:16px;">: {{d['department'].email}}   </span>
                   </td>
                   <td>
@@ -59,23 +59,23 @@ $("#departments").attr('class','active');
                       <form id="addForm">
                                 <div class="form-group">
                                   <label for="name">名称:</label>
-                                  <input type="text" class="form-control" id="name_added" name="name" placeholder="名称">
+                                  <input type="text" class="form-control" id="name_added" name="name" placeholder="名称" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="longitude">联系人:</label>
-                                  <input type="text" class="form-control" id="person_added" name="lng" placeholder="联系人">
+                                  <input type="text" class="form-control" id="person_added" name="person" placeholder="联系人" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="latitude">手机号码:</label> 
-                                  <input type="text" class="form-control" id="phone_added" name="lat" placeholder="手机号码">
+                                  <input type="text" class="form-control" id="mobile_added" name="mobile" placeholder="手机号码" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="latitude">座机号码:</label>
-                                  <input type="text" class="form-control" id="mobile_added" name="lat" placeholder="座机号码">
+                                  <input type="text" class="form-control" id="phone_added" name="phone" placeholder="座机号码" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="latitude">邮箱地址:</label>
-                                  <input type="text" class="form-control" id="email_added" name="lat" placeholder="邮箱地址">
+                                  <input type="text" class="form-control" id="email_added" name="email" placeholder="邮箱地址" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="latitude">接受告警类型:</label>
@@ -84,6 +84,7 @@ $("#departments").attr('class','active');
                                   {%end%}                                  
                                 </div>                                 
                       </form>
+                      <label class="btn btn-danger btn-xs hide" id="add_message" name="message">Error message</label>
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
@@ -105,23 +106,23 @@ $("#departments").attr('class','active');
                               <form id="setupForm">
                                 <div class="form-group">
                                   <label for="name">名称:</label>
-                                  <input type="text" class="form-control" id="name_setup" name="name" placeholder="名称">
+                                  <input type="text" class="form-control" id="name_setup" name="name" placeholder="名称" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="person">联系人:</label>
-                                  <input type="text" class="form-control" id="person_setup" name="person" placeholder="联系人">
+                                  <input type="text" class="form-control" id="person_setup" name="person" placeholder="联系人" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="phone">手机号码:</label> 
-                                  <input type="text" class="form-control" id="phone_setup" name="phone" placeholder="手机号码">
+                                  <input type="text" class="form-control" id="mobile_setup" name="mobile" placeholder="手机号码" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="mobile">座机号码:</label>
-                                  <input type="text" class="form-control" id="mobile_setup" name="mobile" placeholder="座机号码">
+                                  <input type="text" class="form-control" id="phone_setup" name="phone" placeholder="座机号码" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="email">邮箱地址:</label>
-                                  <input type="text" class="form-control" id="email_setup" name="email" placeholder="邮箱地址">
+                                  <input type="text" class="form-control" id="email_setup" name="email" placeholder="邮箱地址" required>
                                 </div>
                                 <div class="form-group">
                                   <label for="event">接受告警类型:</label><br>
@@ -129,10 +130,11 @@ $("#departments").attr('class','active');
                                   {%for e in e_dic%}
                                   <input class="btn btn-default select_event" type="button" value="{{e_dic[e]}}" id="event_setup_{{e}}">
                                   {%end%}
-                                  
+                                    
                                 </div>  
-                                <input type="hidden" id="id_setup" name="id">                                  
+                                <input class="hide" type="hidden" id="id_setup" name="id">                                  
                               </form>
+                              <label class="btn btn-danger btn-xs hide" id="setup_message" name="message">Error message</label>
                             </div>
                             <div class="modal-footer">
                               <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
@@ -218,6 +220,7 @@ $("#departments").attr('class','active');
      $('#setupModal').on('hidden.bs.modal', function (event) {
         $(".select_event").removeClass('btn-success')
         $(".select_event").addClass('btn-default') 
+        $('#setup_message').addClass("hide")
      });
 
 
@@ -231,12 +234,49 @@ $("#departments").attr('class','active');
      });
 
     $('#saveSetup').click(function(){
+        $('#setup_message').addClass("hide")
         var id = $('#id_setup').val()
         var name = $('#name_setup').val()
         var person = $('#person_setup').val()
         var phone = $('#phone_setup').val()
         var mobile = $('#mobile_setup').val()
         var email = $('#email_setup').val()
+        
+        if(!isId(id)){
+            $('#setup_message').removeClass("hide")
+            $('#setup_message').html('ID值非法')
+            return
+        }
+
+        if(!isName(name)){
+            $('#setup_message').removeClass("hide")
+            $('#setup_message').html('委办名称为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isPerson(person)){
+            $('#setup_message').removeClass("hide")
+            $('#setup_message').html('联系人姓名为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isMobile(mobile)){
+            $('#setup_message').removeClass("hide")
+            $('#setup_message').html('手机号码为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isPhone(phone)){
+            $('#setup_message').removeClass("hide")
+            $('#setup_message').html('座机号码为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isEmail(email)){
+            $('#setup_message').removeClass("hide")
+            $('#setup_message').html('Email地址为空或输入有误，请确认。')
+            return
+        }
         var ev_list = $('.btn-success.select_event')
         var type = []
         for(var i=0;i<ev_list.size();i++){
@@ -280,12 +320,49 @@ $("#departments").attr('class','active');
         })
     });
 
+    $('#addModal').on('hidden.bs.modal', function (event) {
+        $(".select_event").removeClass('btn-success')
+        $(".select_event").addClass('btn-default') 
+        $('#add_message').addClass("hide")
+     });
+
+
     $('#saveAdd').click(function(){
         var name = $('#name_added').val()
         var person = $('#person_added').val()
         var phone = $('#phone_added').val()
         var mobile = $('#mobile_added').val()
         var email = $('#email_added').val()
+        if(!isName(name)){
+            $('#add_message').removeClass("hide")
+            $('#add_message').html('委办名称为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isPerson(person)){
+            $('#add_message').removeClass("hide")
+            $('#add_message').html('联系人姓名为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isMobile(mobile)){
+            $('#add_message').removeClass("hide")
+            $('#add_message').html('手机号码为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isPhone(phone)){
+            $('#add_message').removeClass("hide")
+            $('#add_message').html('座机号码为空或输入有误，请确认。')
+            return
+        }
+
+        if(!isEmail(email)){
+            $('#add_message').removeClass("hide")
+            $('#add_message').html('Email地址为空或输入有误，请确认。')
+            return
+        }
+
         var ev_list = $('.btn-success.select_event')
         var type = []
         for(var i=0;i<ev_list.size();i++){
