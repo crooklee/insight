@@ -101,8 +101,10 @@ $('#handleModal').on('show.bs.modal', function (ev) {
                   modal.find('#location').html(rt.location)
                   modal.find('#event').html(rt.event)
                   modal.find('#dt').html(rt.dt)
+                  
+                  //alert(date.getTime())
                   modal.find('#snapshot').attr("src", rt.snapshot)
-
+  
                   for(var i=0;i<rt.departments.length;i++){
                       
                       var node = li_begin + 
@@ -114,11 +116,9 @@ $('#handleModal').on('show.bs.modal', function (ev) {
                                   rt.departments[i].phone + "|" + email_icon +
                                   rt.departments[i].email +
                                   li_end
-                      //console.log(node)
+                      
                       modal.find('#d_list').append(node)   
                   }
-                      
-
              };
         },
         error:function(){

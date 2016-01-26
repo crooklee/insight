@@ -582,7 +582,7 @@ class ApiHandler(BaseHandler):
         snapshot = res['snapshot']
         raw_dt = datetime.now()
         dt = raw_dt.strftime('%Y-%m-%d %H:%M:%S')
-        snapshot_path = util.base64ToImage(snapshot, _type, location.id)
+        snapshot_path = util.base64ToImage(snapshot, _type, location.id, raw_dt)
         event = models.Event(location_id=location_id,
                              type=_type,
                              factor=factor,
