@@ -30,7 +30,8 @@ executor = concurrent.futures.ThreadPoolExecutor(2)
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, type=bool)
 define("db_path", default='sqlite:///./insight.db', type=str)
-e_dic = {1: '交通拥堵', 2: '可疑事件', 3: '违章占道', 4: '交通事故', 5: '行人横穿马路'}
+e_dic = {1: '交通拥堵', 2: '车辆逆行', 3: '违章停车', 4: '主干道路异常',
+         5: '行人横穿马路', 6: '违章侵占道路', 7: '违占应急车道'}
 
 
 class Application(tornado.web.Application):
@@ -218,16 +219,20 @@ class StatisticsHandler(BaseHandler):
         all_events = self.db.query(models.Event).all()
         jam_event = self.db.query(models.Event).filter_by(type=1).all()
         abnormal_event = self.db.query(models.Event).filter_by(type=2).all()
-        abandom_event = self.db.query(models.Event).filter_by(type=3).all()
+        park_event = self.db.query(models.Event).filter_by(type=3).all()
         accident_event = self.db.query(models.Event).filter_by(type=4).all()
         passerby_event = self.db.query(models.Event).filter_by(type=5).all()
+        abandom_event = self.db.query(models.Event).filter_by(type=6).all()
+        liferoad_event = self.db.query(models.Event).filter_by(type=7).all()
         num_new = len(new_events)
         num_all = len(all_events)
         num_jam = len(jam_event)
         num_abnormal = len(abnormal_event)
-        num_abandom = len(abandom_event)
+        num_park = len(park_event)
         num_accident = len(accident_event)
         num_passerby = len(passerby_event)
+        num_abandom = len(abandom_event)
+        num_liferoad = len(liferoad_event)
         self.render(
             'statistics.html',
             user=user,
@@ -238,9 +243,11 @@ class StatisticsHandler(BaseHandler):
             num_all=num_all,
             num_jam=num_jam,
             num_abnormal=num_abnormal,
+            num_park=num_park,
             num_abandom=num_abandom,
             num_accident=num_accident,
-            num_passerby=num_passerby
+            num_passerby=num_passerby,
+            num_liferoad=num_liferoad
         )
 
     @tornado.web.authenticated
@@ -582,7 +589,8 @@ class ApiHandler(BaseHandler):
         snapshot = res['snapshot']
         raw_dt = datetime.now()
         dt = raw_dt.strftime('%Y-%m-%d %H:%M:%S')
-        snapshot_path = util.base64ToImage(snapshot, _type, location.id, raw_dt)
+        snapshot_path = util.base64ToImage(
+            snapshot, _type, location.id, raw_dt)
         event = models.Event(location_id=location_id,
                              type=_type,
                              factor=factor,

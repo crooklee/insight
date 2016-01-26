@@ -13,10 +13,13 @@ $("#visualization").attr('class','active');
       <h4 class="sub-header"><strong>感知事件告警</strong></h4>
       <div class="" role="alert">
           <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/jam.png">:道路拥堵 </span>
-          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/park.png">:违章占道 </span>
-          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/accident.png">:交通事故 </span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/park.png">:违章停车 </span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/accident.png">:主干道异常 </span>
           <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/passerby.png">:行人横穿道路 </span>
-          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/abnormal.png">:可疑事件 </span></div>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/abandom.png">:违章侵占道路</span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/abnormal.png">:车辆逆行</span>
+          <span class="small"><img style="vertical-align:middle;height:25px;" src="/static/image/liferoad.png">:违占应急车道</span>
+    </div>
     <div class="row">
       <div class="well" style="margin-top:5px;height:600px;">
         <div id="i-map" style="width: 100%; height:100%"></div>
@@ -88,8 +91,7 @@ $("#visualization").attr('class','active');
         var icon = ''
         var eventName = ''
         if(_type==1) {
-            icon='/static/image/jam.png'            
-            
+            icon='/static/image/jam.png'       
         }
         else if(_type==2) {
             icon='/static/image/abnormal.png'            
@@ -103,8 +105,13 @@ $("#visualization").attr('class','active');
             
         } 
         else if(_type==5) {
-            icon='/static/image/passerby.png'            
-           
+            icon='/static/image/passerby.png'          
+        }
+        else if(_type==6) {
+            icon='/static/image/abandom.png'          
+        }
+        else if(_type==7) {
+            icon='/static/image/liferoad.png'          
         }
         
         var point = new BMap.Point(parseFloat(lng),parseFloat(lat));
@@ -121,9 +128,11 @@ $("#visualization").attr('class','active');
        var ev_list = {}      
        ev_list['jam'] = createEvent(1, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        ev_list['abnormal'] = createEvent(2, {{l.lng}}, {{l.lat}}, '{{l.name}}');
-       ev_list['abandom'] = createEvent(3, {{l.lng}}, {{l.lat}}, '{{l.name}}');       
+       ev_list['park'] = createEvent(3, {{l.lng}}, {{l.lat}}, '{{l.name}}');       
        ev_list['accident'] = createEvent(4, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        ev_list['passerby'] = createEvent(5, {{l.lng}}, {{l.lat}}, '{{l.name}}');
+       ev_list['abandom'] = createEvent(6, {{l.lng}}, {{l.lat}}, '{{l.name}}');
+       ev_list['liferoad'] = createEvent(7, {{l.lng}}, {{l.lat}}, '{{l.name}}');
        location_list['{{l.id}}']=new _location('{{l.id}}', '{{l.name}}', {{l.lng}}, {{l.lat}}, ev_list) 
     {%end%}
 
@@ -135,13 +144,19 @@ $("#visualization").attr('class','active');
             location_list[{{e.location_id}}].events['abnormal'].bmap_marker.show()
         {%end%}
         {% if e.type == 3%}
-            location_list[{{e.location_id}}].events['abandom'].bmap_marker.show()
+            location_list[{{e.location_id}}].events['park'].bmap_marker.show()
         {%end%}
         {% if e.type == 4%}
             location_list[{{e.location_id}}].events['accident'].bmap_marker.show()
         {%end%}
         {% if e.type == 5%}
             location_list[{{e.location_id}}].events['passerby'].bmap_marker.show()
+        {%end%}
+        {% if e.type == 6%}
+            location_list[{{e.location_id}}].events['abandom'].bmap_marker.show()
+        {%end%}
+        {% if e.type == 7%}
+            location_list[{{e.location_id}}].events['liferoad'].bmap_marker.show()
         {%end%}
     {%end%}
 
@@ -223,7 +238,7 @@ $("#visualization").attr('class','active');
        }
        if(json.type==3){        
            //abandom
-           var marker =  location_list[json.location_id].events['abandom'].bmap_marker 
+           var marker =  location_list[json.location_id].events['park'].bmap_marker 
            if(json.factor>0) {               
                marker.show()
            }  else {
@@ -242,6 +257,24 @@ $("#visualization").attr('class','active');
        if(json.type==5){        
            //  passerby
            var marker =  location_list[json.location_id].events['passerby'].bmap_marker 
+           if(json.factor>0) {              
+              marker.show()
+           }  else {
+               marker.hide() 
+           }     
+       }
+       if(json.type==6){        
+           // accident
+           var marker =  location_list[json.location_id].events['abandom'].bmap_marker
+           if(json.factor>0) {            
+              marker.show()
+           }  else {
+               marker.hide() 
+           }                     
+       }
+       if(json.type==7){        
+           //  passerby
+           var marker =  location_list[json.location_id].events['liferoad'].bmap_marker 
            if(json.factor>0) {              
               marker.show()
            }  else {

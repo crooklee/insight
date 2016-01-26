@@ -58,25 +58,37 @@ $("#statistics").attr('class','active');
                         value:  {{num_abnormal}},
                         color: "#46BFBD",
                         highlight: "#5AD3D1",
-                        label: "可疑事件"
+                        label: "车辆逆行"
                    },
                    {
-                        value: {{num_abandom}},
+                        value: {{num_park}},
                         color: "#FDB45C",
                         highlight: "#FFC870",
-                        label: "违章占道"
+                        label: "违章停车"
                    },
                    {
                         value: {{num_accident}},
                         color:"#DB7093",
                         highlight: "#FFC0CB",
-                        label: "交通事故"
+                        label: "主干道异常"
                    },
                    {
                         value:  {{num_passerby}},
                         color: "#9932CC",
                         highlight: "#8B008B",
                         label: "行人横穿马路"
+                   },
+                   {
+                        value:  {{num_abandom}},
+                        color: "#00ff00",
+                        highlight: "#008000",
+                        label: "违章侵占道路"
+                   },
+                   {
+                        value:  {{num_liferoad}},
+                        color: "#c0c0c0",
+                        highlight: "#808080",
+                        label: "违占应急车道"
                    },
                 ]
 
