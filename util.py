@@ -12,9 +12,9 @@ def getNewEventNum(session):
 
 
 def base64ToImage(snapshot, type, location_id, raw_dt):
-    e_dic = {1: 'jam', 2: 'abnormal',
-             3: 'park', 4: 'accident', 5: 'passerby',
-             6: 'abandom', 7: 'liferoad'}
+    e_dic = {1: 'jam', 2: 'park',
+             3: 'accident', 4: 'passerby', 5: 'abandom',
+             6: 'abnormal', 7: 'liferoad'}
     timestamp = raw_dt.strftime('%Y-%m-%d-%H_%M_%S_%f')
     path = "static/image/snapshot/" + \
         e_dic[int(type)] + '.' + str(location_id) + ".snapshot." + timestamp

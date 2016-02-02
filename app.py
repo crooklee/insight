@@ -30,8 +30,8 @@ executor = concurrent.futures.ThreadPoolExecutor(2)
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=True, type=bool)
 define("db_path", default='sqlite:///./insight.db', type=str)
-e_dic = {1: '交通拥堵', 2: '车辆逆行', 3: '违章停车', 4: '主干道路异常',
-         5: '行人横穿马路', 6: '违章侵占道路', 7: '违占应急车道'}
+e_dic = {1: '交通拥堵', 2: '违章停车', 3: '主干道路异常', 4: '行人横穿马路',
+         5: '违章侵占道路', 6: '车辆逆行', 7: '违占应急车道'}
 
 
 class Application(tornado.web.Application):
@@ -102,7 +102,6 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.db.query(models.User).filter_by(name=name).first()
 
     def any_user_exists(self):
-        print self.db.query(models.User).first()
         return bool(self.db.query(models.User).first())
 
 
@@ -395,7 +394,6 @@ class LocationAddHandler(BaseHandler):
                                    lat=lat)
         self.db.add(location)
         self.db.commit()
-        print name, lng, lat
         self.write('success')
 
 
@@ -456,9 +454,6 @@ class DepartmentSetupHandler(BaseHandler):
         mobile = self.get_argument("mobile")
         email = self.get_argument("email")
         _type = self.get_argument("type")
-        print "-" * 20
-        print name, _type, len(_type.split(','))
-        print "-" * 20
         department = self.db.query(models.Department).filter_by(id=id).first()
         department.name = name
         department.person = person
@@ -504,9 +499,6 @@ class DepartmentAddHandler(BaseHandler):
         mobile = self.get_argument("mobile")
         email = self.get_argument("email")
         _type = self.get_argument("type")
-        print "-" * 20
-        print name, _type, len(_type.split(','))
-        print "-" * 20
         department = models.Department(name=name,
                                        person=person,
                                        phone=phone,
@@ -581,26 +573,60 @@ class ApiHandler(BaseHandler):
         self.finish()
         raw_data = self.request.body
         res = json.loads(raw_data)
-        location_id = res['location_id']
-        location = self.db.query(
-            models.Location).filter_by(id=location_id).one()
-        _type = res['event_type']
-        factor = res['event_factor']
-        snapshot = res['snapshot']
+
+        location_id = ''
+        _type = ''
+        factor = ''
+        snapshot = ''
+
+        try:
+            location_id = res['location_id']
+            print location_id
+            location = self.db.query(
+                models.Location).filter_by(id=location_id).one()
+        except:
+            print "location id invalid!", location_id
+            return
+
+        try:
+            _type = res['event_type']
+            if int(_type) <= 0 or int(_type) > len(e_dic):
+                print "event type invalid!", _type
+                return
+        except:
+            print "event type invalid!", _type
+            return
+
+        try:
+            factor = res['event_factor']
+            if int(factor) < 0 or int(factor) > 99999:
+                print "event factor invalid!", factor
+                return
+        except:
+            print "event factor invalid!", factor
+            return
         raw_dt = datetime.now()
         dt = raw_dt.strftime('%Y-%m-%d %H:%M:%S')
-        snapshot_path = util.base64ToImage(
-            snapshot, _type, location.id, raw_dt)
-        event = models.Event(location_id=location_id,
-                             type=_type,
-                             factor=factor,
-                             dt=raw_dt,
-                             snapshot=snapshot_path,
-                             status=0)
-        self.db.add(event)
-        self.db.commit()
+        try:
+            snapshot = res['snapshot']
+            snapshot_path = util.base64ToImage(
+                snapshot, _type, location.id, raw_dt)
+        except:
+            print "event snapshot invalid!", snapshot
+            return
+        try:
+            event = models.Event(location_id=location_id,
+                                 type=_type,
+                                 factor=factor,
+                                 dt=raw_dt,
+                                 snapshot=snapshot_path,
+                                 status=0)
+            self.db.add(event)
+            self.db.commit()
+        except:
+            print "save event error"
+            return
         events = self.db.query(models.Event).filter_by(status=0).all()
-        print len(events)
         data = {
             "snapshot": snapshot,
             "factor": factor,
